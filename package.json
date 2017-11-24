@@ -1,0 +1,12 @@
+{
+  "name": "sakado-data-server",
+  "version": "1.0.0",
+  "description": "Sakado app data server",
+  "main": "index.js",
+  "repository": "https://github.com/sakado-app/sakado-data-server",
+  "author": "Adrien \"Litarvan\" Navratil <adrien1975@live.fr>",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "puppeteer": "^0.13.0"
+  }
+}
