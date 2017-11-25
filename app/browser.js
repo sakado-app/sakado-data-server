@@ -9,12 +9,12 @@ async function start()
     browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
 }
 
-function newPage()
+function open()
 {
     return browser.newPage();
 }
 
 module.exports = {
     start: start,
-    newPage: newPage
+    open: open
 };
