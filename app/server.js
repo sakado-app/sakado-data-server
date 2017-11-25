@@ -71,7 +71,10 @@ function handleData(socket, dataRaw)
 
     if (session === undefined)
     {
-        socket.write(clientManager.error(`Can't find session with token '${data.token}'`));
+        socket.write(response.error({
+            error: `Can't find session with token '${data.token}'`
+        }));
+
         return;
     }
 
@@ -79,7 +82,10 @@ function handleData(socket, dataRaw)
 
     if (!fs.existsSync(`./app/${file}.js`))
     {
-        socket.write(clientManager.error(`Unknown request '${request}'`));
+        socket.write(response.error({
+            error: `Unknown request '${request}'`
+        }));
+
         logger.warn(`Client requested unknown request : '${request}' (supposed be at '${file}.js')`);
 
         return;
