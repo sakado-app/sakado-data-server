@@ -2,7 +2,6 @@ const net = require('net');
 const fs = require('fs');
 
 const logger = require('./logger');
-const browser = require('./browser');
 const sessionManager = require('./session_manager');
 const response = require('./response');
 
@@ -53,7 +52,19 @@ function onClient(socket)
 
 function handleData(socket, dataRaw)
 {
-    let data = JSON.parse(dataRaw);
+    let data;
+
+    try
+    {
+        data = JSON.parse(dataRaw);
+    }
+    catch (e)
+    {
+        return socket.write(response.malformed({
+            reason: `JSON parsing error : '${e}'`
+        }));
+    }
+
     let request = data.request;
 
     if (request === 'open')
@@ -67,28 +78,39 @@ function handleData(socket, dataRaw)
         return;
     }
 
+    if (request === undefined || data.token === undefined)
+    {
+        return socket.write(response.malformed({
+            reason: "Fields 'request' and 'token' and required"
+        }));
+    }
+
     let session = sessionManager.fromToken(data.token);
+
+    if (request === 'open')
+    {
+        return socket.write(response.success({
+            initialized: session !== undefined,
+            logged: (session !== undefined) ? session.username !== undefined : false
+        }));
+    }
 
     if (session === undefined)
     {
-        socket.write(response.error({
+        return socket.write(response.error({
             error: `Can't find session with token '${data.token}'`
         }));
-
-        return;
     }
 
     let file = `./requests/${request}`;
 
     if (!fs.existsSync(`./app/${file}.js`))
     {
-        socket.write(response.error({
-            error: `Unknown request '${request}'`
-        }));
-
         logger.warn(`Client requested unknown request : '${request}' (supposed be at '${file}.js')`);
 
-        return;
+        return socket.write(response.error({
+            error: `Unknown request '${request}'`
+        }));
     }
 
     require(file)(session, data.params).then(response => {
