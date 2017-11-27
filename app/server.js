@@ -119,13 +119,39 @@ function handleData(socket, dataRaw)
             socket.write(response);
         }
     }).catch(error => {
-        logger.warn(`Error during request '${request}'`);
+        logger.error(`Error during request '${request}'`);
         console.error(error);
 
         socket.write(response.error({
-            error: error
+            error: error.toString()
         }));
+
+        let id = `crash-${new Date().getTime()}`;
+
+        crashReport(session, id).then(() => {
+            logger.error(`Saved crash report to crashes/${id}`);
+        }).catch(err => {
+            logger.error(`Also, an error was dropped while saving crash report id '${id}'`);
+            console.error(err);
+        });
     });
+}
+
+async function crashReport(session, id)
+{
+    let folder = `crashes/${id}/`;
+
+    if (!fs.existsSync('crashes/')) {
+        fs.mkdirSync('crashes/');
+    }
+
+    fs.mkdirSync(folder);
+    fs.writeFileSync(folder + id + '.json', JSON.stringify({
+        url: await session.page.url(),
+        content: await session.page.content()
+    }, null, 4));
+
+    await session.page.screenshot({ path: folder + id + '.png', fullPage: true });
 }
 
 module.exports = {

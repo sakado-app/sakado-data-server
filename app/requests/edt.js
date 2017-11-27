@@ -1,7 +1,9 @@
 const response = require('../response');
 
-async function edt(page)
+async function edt(session)
 {
+    let page = session.page;
+
     await page.setViewport({
         width: 1920,
         height: 1080
@@ -9,7 +11,6 @@ async function edt(page)
 
     await page.mouse.click(450, 40);
     await page.waitFor('table.Cours');
-
 
     let cours = await page.evaluate(function() {
         let coursArray = [];
@@ -31,9 +32,9 @@ async function edt(page)
 
     await page.screenshot({ path: 'edt.png', fullPage: true });
 
-    return response.success({
+    return response.success(session, {
         result: cours
     });
 }
 
-module.exports = (session, params) => edt(session.page);
+module.exports = (session, params) => edt(session);

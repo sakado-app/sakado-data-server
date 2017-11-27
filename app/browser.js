@@ -9,9 +9,15 @@ async function start()
     browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
 }
 
-function open()
+async function open()
 {
-    return browser.newPage();
+    let page = await browser.newPage();
+    await page.setViewport({
+        width: 1920,
+        height: 1080
+    });
+
+    return page;
 }
 
 module.exports = {

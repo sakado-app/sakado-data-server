@@ -29,7 +29,9 @@ async function login(session, username, password)
         await page.goto(loginUrl, { waitUntil: 'networkidle0' });
     }
 
-    await page.waitFor('#user');
+    await page.waitFor('#user', {
+        timeout: 60000
+    });
 
     await page.evaluate(function (username, password) {
         document.querySelector('#user').value = username;
@@ -53,13 +55,13 @@ async function login(session, username, password)
 async function finishLogin(session, username, page)
 {
     await page.waitFor('#GInterface_T', {
-        timeout: 45000
+        timeout: 60000
     });
 
     logger.info(`Successfully logged in session #${session.id} : '${username}'`);
     session.username = username;
 
-    return response.success();
+    return response.success(session);
 }
 
 module.exports = (session, params) => login(session, params.username, params.password);
