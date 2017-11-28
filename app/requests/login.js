@@ -1,7 +1,7 @@
 const logger = require('../logger');
 const response = require('../response');
 
-async function login(session, username, password)
+async function login(id, session, username, password)
 {
     logger.info(`Starting login for session #${session.id}, account '${username}'`);
     const page = session.page;
@@ -49,19 +49,19 @@ async function login(session, username, password)
         });
     }
 
-    return await finishLogin(session, username, page);
+    return await finishLogin(id, session, username);
 }
 
-async function finishLogin(session, username, page)
+async function finishLogin(id, session, username)
 {
-    await page.waitFor('#GInterface_T', {
+    await session.page.waitFor('#GInterface_T', {
         timeout: 60000
     });
 
     logger.info(`Successfully logged in session #${session.id} : '${username}'`);
     session.username = username;
 
-    return response.success(session);
+    return response.success(id);
 }
 
-module.exports = (session, params) => login(session, params.username, params.password);
+module.exports = (id, session, params) => login(id, session, params.username, params.password);

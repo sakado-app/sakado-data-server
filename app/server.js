@@ -20,7 +20,7 @@ function onClient(socket)
 {
     if (client !== null)
     {
-        socket.write(response.error({
+        socket.write(response.error(undefined, {
             error: `A client is already connected from ${client.address().address}`
         }));
 
@@ -60,18 +60,26 @@ function handleData(socket, dataRaw)
     }
     catch (e)
     {
-        return socket.write(response.malformed({
+        return socket.write(undefined, response.malformed({
             reason: `JSON parsing error : '${e}'`
         }));
     }
 
     let request = data.request;
+    let id = data.id;
+
+    if (id === undefined)
+    {
+        return socket.write(response.malformed(undefined, {
+            reason: `Missing 'id' field`
+        }));
+    }
 
     if (request === 'open')
     {
-        sessionManager.open().then(session => socket.write(response.success({
+        sessionManager.open().then(session => socket.write(response.success(id, {
             token: session.token
-        }))).catch(error => socket.write(response.internalError({
+        }))).catch(error => socket.write(response.internalError(id, {
             error: error
         })));
 
@@ -80,16 +88,16 @@ function handleData(socket, dataRaw)
 
     if (request === undefined || data.token === undefined)
     {
-        return socket.write(response.malformed({
+        return socket.write(response.malformed(id, {
             reason: "Fields 'request' and 'token' and required"
         }));
     }
 
     let session = sessionManager.fromToken(data.token);
 
-    if (request === 'open')
+    if (request === 'status')
     {
-        return socket.write(response.success({
+        return socket.write(response.success(id, {
             initialized: session !== undefined,
             logged: (session !== undefined) ? session.username !== undefined : false
         }));
@@ -97,7 +105,7 @@ function handleData(socket, dataRaw)
 
     if (session === undefined)
     {
-        return socket.write(response.error({
+        return socket.write(response.error(id, {
             error: `Can't find session with token '${data.token}'`
         }));
     }
@@ -108,12 +116,12 @@ function handleData(socket, dataRaw)
     {
         logger.warn(`Client requested unknown request : '${request}' (supposed be at '${file}.js')`);
 
-        return socket.write(response.error({
+        return socket.write(response.error(id, {
             error: `Unknown request '${request}'`
         }));
     }
 
-    require(file)(session, data.params).then(response => {
+    require(file)(id, session, data.params).then(response => {
         if (response !== undefined)
         {
             socket.write(response);
@@ -122,16 +130,16 @@ function handleData(socket, dataRaw)
         logger.error(`Error during request '${request}'`);
         console.error(error);
 
-        socket.write(response.error({
+        socket.write(response.error(id, {
             error: error.toString()
         }));
 
-        let id = `crash-${new Date().getTime()}`;
+        let crashID = `crash-${new Date().getTime()}`;
 
-        crashReport(session, id).then(() => {
-            logger.error(`Saved crash report to crashes/${id}`);
+        crashReport(session, crashID).then(() => {
+            logger.error(`Saved crash report to crashes/${crashID}`);
         }).catch(err => {
-            logger.error(`Also, an error was dropped while saving crash report id '${id}'`);
+            logger.error(`Also, an error was dropped while saving crash report id '${crashID}'`);
             console.error(err);
         });
     });

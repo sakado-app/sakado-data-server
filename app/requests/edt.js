@@ -1,6 +1,6 @@
 const response = require('../response');
 
-async function edt(session)
+async function edt(id, session)
 {
     let page = session.page;
 
@@ -32,9 +32,9 @@ async function edt(session)
 
     await page.screenshot({ path: 'edt.png', fullPage: true });
 
-    return response.success(session, {
+    return response.success(id, {
         result: cours
     });
 }
 
-module.exports = (session, params) => edt(session);
+module.exports = (id, session, params) => edt(id, session);

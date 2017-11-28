@@ -1,6 +1,6 @@
 const status = ['success', 'error', 'internalError', 'malformed'];
 
-function response(status, response, session)
+function response(status, id, response)
 {
     if (response === undefined)
     {
@@ -9,12 +9,12 @@ function response(status, response, session)
 
     response['status'] = status;
 
-    if (session !== undefined)
+    if (id !== undefined)
     {
-        response['token'] = session.token;
+        response['id'] = id;
     }
 
     return JSON.stringify(response) + "\n";
 }
 
-status.forEach(status => module.exports[status] = (session, r) => response(session, status, r));
+status.forEach(status => module.exports[status] = (id, r) => response(status, id, r));
