@@ -13,18 +13,51 @@ async function edt(id, session)
     await page.waitFor('table.Cours');
 
     let cours = await page.evaluate(function() {
+        let process = str => str.trim().replace('\n', '');
+
         let coursArray = [];
-        let result = document.querySelectorAll("table.Cours");
+        let result = document.querySelectorAll('table.Cours');
 
         for (let i = 0; i < result.length; i++) {
             let cours = result[i];
-            let inner = cours.innerText.split('\n');
+            let computed = {};
+            let lines = Array.from(cours.querySelectorAll('div.AlignementMilieu'));
 
-            coursArray[i] = {
-                name: inner[0],
-                prof: inner[1],
-                content: cours.innerHTML
-            };
+            if (lines[0].classList.contains('FondBlanc'))
+            {
+                computed.info = process(lines[0].innerText);
+                lines.splice(0, 1);
+            }
+
+            if (lines.length === 0)
+            {
+                continue;
+            }
+
+            computed.name = process(lines[0].innerText);
+
+            if (computed.name === '')
+            {
+                continue;
+            }
+
+            if (lines.length > 1)
+            {
+                computed.prof = process(lines[1].innerText);
+
+                if (computed.prof === computed.name)
+                {
+                    computed.prof = process(lines[2].innerText);
+                }
+            }
+
+            let parentStyle = cours.parentElement.parentElement.parentElement.style;
+
+            ['top', 'left', 'width', 'height'].forEach(name => {
+                computed[name] = parseInt(parentStyle[name].substring(0, 2))
+            });
+
+            coursArray.push(computed);
         }
 
         return Promise.resolve(coursArray);
