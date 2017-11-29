@@ -51,6 +51,11 @@ async function edt(id, session)
                 }
             }
 
+            if (lines.length > 2)
+            {
+                computed.salle = process(lines[2].innerText);
+            }
+
             let parentStyle = cours.parentElement.parentElement.parentElement.style;
 
             ['top', 'left', 'width', 'height'].forEach(name => {
@@ -70,4 +75,4 @@ async function edt(id, session)
     });
 }
 
-module.exports = (id, session, params) => edt(id, session);
+c
