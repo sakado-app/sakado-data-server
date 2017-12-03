@@ -48,6 +48,17 @@ async function edt(id, session)
                 if (computed.prof === computed.name)
                 {
                     computed.prof = process(lines[2].innerText);
+                    lines.splice(0, 1);
+                }
+            }
+
+            if (lines.length > 2)
+            {
+                let second = lines[2].innerText;
+
+                if (second.startsWith('[') || second.startsWith('<') || second.endsWith('.'))
+                {
+                    lines.splice(0, 1);
                 }
             }
 
@@ -59,7 +70,8 @@ async function edt(id, session)
             let parentStyle = cours.parentElement.parentElement.parentElement.style;
 
             ['top', 'left', 'width', 'height'].forEach(name => {
-                computed[name] = parseInt(parentStyle[name].substring(0, 2))
+                let style = parentStyle[name];
+                computed[name] = parseInt(style.substring(0, style.length - 2))
             });
 
             coursArray.push(computed);
@@ -75,4 +87,4 @@ async function edt(id, session)
     });
 }
 
-c
+module.exports = (id, session, _) => edt(id, session);

@@ -42,8 +42,7 @@ function onClient(socket)
             logger.error(`Major error while handling data from '${socket.address().address}'`);
             console.error(e);
 
-            socket.write(JSON.stringify({
-                status: 'internal-error',
+            socket.write(response.internalError(undefined, {
                 error: e.toString()
             }));
         }
@@ -60,7 +59,7 @@ function handleData(socket, dataRaw)
     }
     catch (e)
     {
-        return socket.write(undefined, response.malformed({
+        return socket.write(response.malformed(undefined, {
             reason: `JSON parsing error : '${e}'`
         }));
     }
