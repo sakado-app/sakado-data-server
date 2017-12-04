@@ -1,5 +1,8 @@
 const response = require('../response');
 
+const COURS_LENGTH = 308;
+const COURS_HEIGHT = 75;
+
 async function edt(id, session)
 {
     let page = session.page;
@@ -68,16 +71,25 @@ async function edt(id, session)
             }
 
             let parentStyle = cours.parentElement.parentElement.parentElement.style;
+            computed.dim = {};
 
             ['top', 'left', 'width', 'height'].forEach(name => {
                 let style = parentStyle[name];
-                computed[name] = parseInt(style.substring(0, style.length - 2))
+                computed.dim[name] = parseInt(style.substring(0, style.length - 2))
             });
 
             coursArray.push(computed);
         }
 
         return Promise.resolve(coursArray);
+    });
+
+    cours.forEach(c => {
+        c.length = Math.round(c.dim.height / COURS_HEIGHT);
+        c.hour = Math.round(c.dim.top / COURS_HEIGHT);
+        c.day = Math.round(c.dim.left / COURS_LENGTH);
+
+        delete c.dim;
     });
 
     await page.screenshot({ path: 'edt.png', fullPage: true });
