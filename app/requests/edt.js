@@ -14,6 +14,7 @@ async function edt(id, session)
 
     await page.mouse.click(450, 40);
     await page.waitFor('table.Cours');
+    await page.waitFor('.AlignementMilieu.Insecable');
 
     let cours = await page.evaluate(function() {
         let process = str => str.trim().replace('\n', '');
@@ -95,7 +96,9 @@ async function edt(id, session)
     await page.screenshot({ path: 'edt.png', fullPage: true });
 
     return response.success(id, {
-        result: cours
+        result: {
+            cours: cours
+        }
     });
 }
 

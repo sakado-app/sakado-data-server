@@ -13,7 +13,7 @@ async function login(id, session, username, password)
 
     if (url.includes('identifiant='))
     {
-        return await finishLogin(session, username, page);
+        return await finishLogin(id, session, username);
     }
 
     if (url.includes('/cas/login?service='))

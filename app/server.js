@@ -77,7 +77,9 @@ function handleData(socket, dataRaw)
     if (request === 'open')
     {
         sessionManager.open().then(session => socket.write(response.success(id, {
-            token: session.token
+            result: {
+                token: session.token
+            }
         }))).catch(error => socket.write(response.internalError(id, {
             error: error
         })));
@@ -90,6 +92,17 @@ function handleData(socket, dataRaw)
         return socket.write(response.malformed(id, {
             reason: "Fields 'request' and 'token' and required"
         }));
+    }
+
+    if (request === 'close')
+    {
+        sessionManager.close(data.token).then(() => {
+            socket.write(response.success(id));
+        }).catch(error => socket.write(response.internalError(id, {
+            error: error
+        })));
+
+        return;
     }
 
     let session = sessionManager.fromToken(data.token);

@@ -34,6 +34,19 @@ async function open()
     return session;
 }
 
+async function close(token)
+{
+    const session = fromToken(token);
+
+    if (session === undefined)
+    {
+        return;
+    }
+
+    await session.page.close();
+    delete sessions[token];
+}
+
 function fromToken(token)
 {
     return sessions[token];
@@ -41,5 +54,7 @@ function fromToken(token)
 
 module.exports = {
     open: open,
+    close: close,
+
     fromToken: fromToken
 };
