@@ -12,7 +12,10 @@ async function edt(id, session)
         height: 1080
     });
 
-    await page.mouse.click(450, 40);
+    await page.mouse.move(450, 40);
+    await sleep(1500);
+    await page.mouse.down();
+    await sleep(4500);
     await page.waitFor('table.Cours');
     await page.waitFor('.AlignementMilieu.Insecable');
 
@@ -100,6 +103,11 @@ async function edt(id, session)
             cours: cours
         }
     });
+}
+
+function sleep(ms)
+{
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 module.exports = (id, session, _) => edt(id, session);

@@ -6,7 +6,7 @@ let browser;
 async function start()
 {
     logger.info(`Starting chrome browser...`);
-    browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'], headless: false });
 }
 
 async function open()

@@ -1,11 +1,23 @@
 const logger = require('../logger');
 const response = require('../response');
 
-async function login(id, session, username, password)
+async function login(id, session, username, password, method)
 {
     logger.info(`Starting login for session #${session.id}, account '${username}'`);
-    const page = session.page;
 
+    if (method === 'ent')
+    {
+        ent(id, session, username, password);
+    }
+    else
+    {
+        classic(id, session, username, password);
+    }
+}
+
+async function ent(id, session, username, password)
+{
+    const page = session.page;
     await page.goto('http://notes.lyc-joffre-montpellier.ac-montpellier.fr/', { waitUntil: 'networkidle2' });
 
     let url = page.url();
@@ -48,6 +60,24 @@ async function login(id, session, username, password)
             return Promise.resolve(document.querySelector('#erreurs_login').innerHTML);
         });
     }
+
+    return await finishLogin(id, session, username);
+}
+
+async function classic(id, session, username, password)
+{
+    const page = session.page;
+    await page.goto('http://notes.lyc-joffre-montpellier.ac-montpellier.fr/eleve.html?login=true', { waitUntil: 'networkidle2' });
+
+    let url = page.url();
+    logger.info(`Login start URL for session #${session.id} : '${url}'`);
+
+    await page.evaluate(function(username, password) {
+        let inputs = document.querySelectorAll("input");
+        inputs[0].value = username;
+        inputs[1].value = password;
+        inputs[2].click()
+    }, username, password);
 
     return await finishLogin(id, session, username);
 }
