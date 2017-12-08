@@ -1,10 +1,13 @@
 const response = require('../response');
+const util = require('../util');
 
 const COURS_LENGTH = 308;
 const COURS_HEIGHT = 75;
 
 async function edt(id, session)
 {
+    await util.checkForExpire(session);
+
     let page = session.page;
 
     await page.setViewport({

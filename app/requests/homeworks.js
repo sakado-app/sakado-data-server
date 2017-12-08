@@ -1,5 +1,9 @@
+const util = require('../util');
+
 async function homeworks(id, session)
 {
+    await util.checkForExpire(session);
+
     let page = session.page;
 
     await page.mouse.click(200, 40);
