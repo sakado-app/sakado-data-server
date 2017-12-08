@@ -1,4 +1,4 @@
-const status = ['success', 'error', 'internalError', 'malformed'];
+const status = ['success', 'failed', 'error', 'internalError', 'malformed'];
 
 function response(status, id, response)
 {
