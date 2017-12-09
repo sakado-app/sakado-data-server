@@ -33,10 +33,19 @@ async function edt(id, session)
         height: 1080
     });
 
-    await page.mouse.move(450, 40);
-    await sleep(1500);
-    await page.mouse.down();
-    await sleep(4500);
+    await page.evaluate(function() {
+        let menus = document.querySelectorAll(".objetmenuprincipalComboLabel");
+
+        menus.forEach(m => {
+            if (m.innerText === 'Vie\nscolaire')
+            {
+                m.classList.add('edt-button');
+            }
+        });
+    });
+
+    await page.click('.edt-button');
+
     await page.waitFor('table.Cours');
     await page.waitFor('.AlignementMilieu.Insecable');
 
@@ -124,11 +133,6 @@ async function edt(id, session)
             cours: cours
         }
     });
-}
-
-function sleep(ms)
-{
-    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 module.exports = (id, session, _) => edt(id, session);
