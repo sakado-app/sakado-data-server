@@ -16,15 +16,13 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const logger = require('./app/logger');
-const server = require('./app/server');
-const browser = require('./app/browser');
+const util = require('../util');
+const response = require('../response');
 
-console.log(`.: Sakado data server v${require('./app/version')} :.\n`);
+async function handshake(id, session)
+{
+    await util.checkForExpire(session);
+    return response.success(id);
+}
 
-browser.start().then(() => {
-    server.start("127.0.0.1", 13556);
-}).catch(err => {
-    logger.error("Unable to start browser :");
-    console.error(err);
-});
+module.exports = (id, session, params) => handshake(id, session);
