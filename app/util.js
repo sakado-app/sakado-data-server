@@ -43,6 +43,16 @@ async function checkForExpire(session)
     return false;
 }
 
+function dig(element, times)
+{
+    for (let i = 0; i < times; i++)
+    {
+        element = element.firstChild;
+    }
+
+    return element;
+}
+
 function sleep(duration)
 {
     return new Promise(r => setTimeout(r, duration));
@@ -50,5 +60,6 @@ function sleep(duration)
 
 module.exports = {
     checkForExpire: checkForExpire,
-    sleep: sleep
+    sleep: sleep,
+    dig: dig
 };

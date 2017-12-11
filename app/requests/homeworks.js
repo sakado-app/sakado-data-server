@@ -17,6 +17,7 @@
  */
 
 const util = require('../util');
+const response = require('../response');
 
 async function homeworks(id, session)
 {
@@ -27,16 +28,73 @@ async function homeworks(id, session)
     await page.mouse.click(200, 40);
     await page.waitFor(".ElementPourNavigation.AlignementGauche.AvecMain.FondBlanc");
 
-    let result = await page.evaluate(function() {
-        let homeworks = document.querySelectorAll(".ElementPourNavigation.AlignementGauche.AvecMain.FondBlanc");
+    await page.click(".Image_Bandeau_Deployer");
+    await page.waitFor(".jIECheckBox_Conteneur");
+
+    let result = await page.evaluate(function()
+    {
+        // UTIL START
+        const DAYS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+        const MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+        function dig(element, times)
+        {
+            for (let i = 0; i < times; i++)
+            {
+                element = element.firstChild;
+            }
+
+            return element;
+        }
+
+        function parseDay(str)
+        {
+            let content = str.split(' ');
+
+            return {
+                weekday: DAYS.indexOf(content[0]) + 1,
+                day: parseInt(content[1]),
+                month: MONTHS.indexOf(content[2]) + 1
+            };
+        }
+        // UTIL END
+
         let homeworksArray = [];
 
-        for (let i = 0; i < result.length; i++) {
-            let homework = homeworks[i];
+        let lines = document.querySelector(".Tableau").firstChild.childNodes;
+        for (let week = 0; week < 2; week++)
+        {
+            for (let dayN = 0; dayN < 6 /* no work at sunday */; dayN++) {
+                let day = lines[week * 2].childNodes[dayN];
+                let entry = lines[week * 2 + 1].childNodes[dayN];
+
+                let homeworks = entry.querySelectorAll(".ElementPourNavigation.AlignementGauche.AvecMain.FondBlanc");
+
+                for (let i = 0; i < homeworks.length; i++)
+                {
+                    let homework = homeworks[i];
+
+                    let content = dig(homework, 4).childNodes;
+                    let deep = dig(content[1], 7).childNodes;
+
+                    homeworksArray.push({
+                        subject: content[0].innerText,
+                        since: deep[0].innerText.substring(9, 14),
+                        content: deep[1].innerText,
+                        day: parseDay(day.innerText.trim().toLowerCase())
+                    });
+                }
+            }
         }
+
+        return Promise.resolve(homeworksArray);
     });
 
-    await page.screenshot({ path: 'homeworks.png', fullPage: true });
+    return response.success(id, {
+        result: {
+            homeworks: result
+        }
+    });
 }
 
 module.exports = (id, session, params) => homeworks(id, session);
