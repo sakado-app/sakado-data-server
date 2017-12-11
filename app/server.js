@@ -43,6 +43,7 @@ function onClient(socket)
         }));
 
         logger.warn(`A client from ${socket.address().address} tried to connect, but ${client.address().address} is already connected`);
+        socket.close();
 
         return;
     }
@@ -64,6 +65,11 @@ function onClient(socket)
                 error: e.toString()
             }));
         }
+    });
+
+    socket.on('close', _ => {
+       logger.warn('Lost connection to server');
+       client = null;
     });
 }
 
