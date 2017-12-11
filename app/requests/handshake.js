@@ -17,12 +17,10 @@
  */
 
 const util = require('../util');
-const response = require('../response');
 
-async function handshake(id, session)
+function handshake(session)
 {
-    await util.checkForExpire(session);
-    return response.success(id);
+    return util.checkForExpire(session);
 }
 
-module.exports = (id, session, params) => handshake(id, session);
+module.exports = handshake;

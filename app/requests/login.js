@@ -17,9 +17,9 @@
  */
 
 const logger = require('../logger');
-const response = require('../response');
+const RequestError = require('../error');
 
-async function login(id, session, username, password)
+async function login(session, { username, password })
 {
     logger.info(`Starting login for session #${session.id}, account '${username}'`);
 
@@ -33,13 +33,13 @@ async function login(id, session, username, password)
         timeout: 60000
     });
 
-    await page.evaluate(function(username, password) {
+    await page.evaluate(function() {
         let inputs = document.querySelectorAll("input");
 
         inputs[0].classList.add('username-field');
         inputs[1].classList.add('password-field');
         inputs[2].classList.add('login-button');
-    }, username, password);
+    });
 
     await page.click('.username-field');
     await page.keyboard.type(username, { delay: 100 });
@@ -69,13 +69,12 @@ async function login(id, session, username, password)
         session.username = username;
         session.password = password;
 
-        return response.success(id);
+        return;
     }
 
     logger.info(`Login failed for session #${session.id} : ${result}`);
-    return response.failed(id, {
-        error: result
-    });
+
+    throw new RequestError(result);
 }
 
-module.exports = (id, session, params) => login(id, session, params.username, params.password);
+module.exports = login;

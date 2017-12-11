@@ -16,13 +16,12 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const response = require('../response');
 const util = require('../util');
 
 const COURS_LENGTH = 308;
 const COURS_HEIGHT = 75;
 
-async function edt(id, session)
+async function edt(session)
 {
     await util.checkForExpire(session);
 
@@ -126,13 +125,7 @@ async function edt(id, session)
         delete c.dim;
     });
 
-    await page.screenshot({ path: 'edt.png', fullPage: true });
-
-    return response.success(id, {
-        result: {
-            cours: cours
-        }
-    });
+    return cours;
 }
 
-module.exports = (id, session, _) => edt(id, session);
+module.exports = edt;

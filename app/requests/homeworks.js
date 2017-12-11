@@ -17,9 +17,8 @@
  */
 
 const util = require('../util');
-const response = require('../response');
 
-async function homeworks(id, session)
+async function homeworks(session)
 {
     await util.checkForExpire(session);
 
@@ -90,11 +89,7 @@ async function homeworks(id, session)
         return Promise.resolve(homeworksArray);
     });
 
-    return response.success(id, {
-        result: {
-            homeworks: result
-        }
-    });
+    return result;
 }
 
-module.exports = (id, session, params) => homeworks(id, session);
+module.exports = homeworks;

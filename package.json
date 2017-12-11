@@ -7,6 +7,7 @@
   "author": "Adrien \"Litarvan\" Navratil <adrien1975@live.fr>",
   "license": "BSD-3-Clause",
   "dependencies": {
+    "jayson": "^2.0.5",
     "puppeteer": "^0.13.0",
     "winston": "^2.4.0"
   }
