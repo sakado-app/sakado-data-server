@@ -22,7 +22,7 @@ async function homeworks(session)
 {
     await util.checkForExpire(session);
 
-    let page = session.page;
+    const page = session.page;
 
     await page.mouse.click(200, 40);
     await page.waitFor(".ElementPourNavigation.AlignementGauche.AvecMain.FondBlanc");
@@ -30,7 +30,7 @@ async function homeworks(session)
     await page.click(".Image_Bandeau_Deployer");
     await page.waitFor(".jIECheckBox_Conteneur");
 
-    let result = await page.evaluate(function()
+    return await page.evaluate(function()
     {
         // UTIL START
         const DAYS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
@@ -48,38 +48,39 @@ async function homeworks(session)
 
         function parseDay(str)
         {
-            let content = str.split(' ');
+            const [weekday, day, month] = str.split(' ');
 
             return {
-                weekday: DAYS.indexOf(content[0]) + 1,
-                day: parseInt(content[1]),
-                month: MONTHS.indexOf(content[2]) + 1
+                weekday: DAYS.indexOf(weekday) + 1,
+                day: parseInt(day),
+                month: MONTHS.indexOf(month) + 1
             };
         }
         // UTIL END
 
         let homeworksArray = [];
 
-        let lines = document.querySelector(".Tableau").firstChild.childNodes;
+        const lines = document.querySelector(".Tableau").firstChild.childNodes;
         for (let week = 0; week < 2; week++)
         {
-            for (let dayN = 0; dayN < 6 /* no work at sunday */; dayN++) {
-                let day = lines[week * 2].childNodes[dayN];
+            for (let dayN = 0; dayN < 6 /* no work at sunday */; dayN++)
+            {
+                const day = lines[week * 2].childNodes[dayN];
                 let entry = lines[week * 2 + 1].childNodes[dayN];
 
-                let homeworks = entry.querySelectorAll(".ElementPourNavigation.AlignementGauche.AvecMain.FondBlanc");
+                const homeworks = entry.querySelectorAll(".ElementPourNavigation.AlignementGauche.AvecMain.FondBlanc");
 
                 for (let i = 0; i < homeworks.length; i++)
                 {
-                    let homework = homeworks[i];
+                    const homework = homeworks[i];
 
-                    let content = dig(homework, 4).childNodes;
-                    let deep = dig(content[1], 7).childNodes;
+                    const [subject, subContent] = dig(homework, 4).childNodes;
+                    const [since, content] = dig(subContent, 7).childNodes;
 
                     homeworksArray.push({
-                        subject: content[0].innerText,
-                        since: deep[0].innerText.substring(9, 14),
-                        content: deep[1].innerText,
+                        subject: subject.innerText,
+                        since: since.innerText.substring(9, 14),
+                        content: content.innerText,
                         day: parseDay(day.innerText.trim().toLowerCase())
                     });
                 }
@@ -88,8 +89,6 @@ async function homeworks(session)
 
         return Promise.resolve(homeworksArray);
     });
-
-    return result;
 }
 
 module.exports = homeworks;

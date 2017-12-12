@@ -23,8 +23,9 @@ async function checkForExpire(session)
     await session.page.mouse.move(500, 500);
     await sleep(1000);
 
-    let expired = await session.page.evaluate(function() {
-        let el = document.querySelector('#waispan_id');
+    const expired = await session.page.evaluate(function()
+    {
+        const el = document.querySelector('#waispan_id');
         return Promise.resolve(el !== null && el.innerText === "Vous avez été déconnecté");
     });
 

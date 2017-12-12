@@ -25,7 +25,7 @@ async function edt(session)
 {
     await util.checkForExpire(session);
 
-    let page = session.page;
+    const page = session.page;
 
     await page.setViewport({
         width: 1920,
@@ -33,7 +33,7 @@ async function edt(session)
     });
 
     await page.evaluate(function() {
-        let menus = document.querySelectorAll(".objetmenuprincipalComboLabel");
+        const menus = document.querySelectorAll(".objetmenuprincipalComboLabel");
 
         menus.forEach(m => {
             if (m.innerText === 'Vie\nscolaire')
@@ -48,16 +48,17 @@ async function edt(session)
     await page.waitFor('table.Cours');
     await page.waitFor('.AlignementMilieu.Insecable');
 
-    let cours = await page.evaluate(function() {
-        let process = str => str.trim().replace('\n', '');
+    const cours = await page.evaluate(function()
+    {
+        const process = str => str.trim().replace('\n', '');
 
         let coursArray = [];
-        let result = document.querySelectorAll('table.Cours');
+        const result = document.querySelectorAll('table.Cours');
 
         for (let i = 0; i < result.length; i++) {
-            let cours = result[i];
+            const cours = result[i];
             let computed = {};
-            let lines = Array.from(cours.querySelectorAll('div.AlignementMilieu'));
+            const lines = Array.from(cours.querySelectorAll('div.AlignementMilieu'));
 
             if (lines[0].classList.contains('FondBlanc'))
             {
@@ -107,7 +108,7 @@ async function edt(session)
             computed.dim = {};
 
             ['top', 'left', 'width', 'height'].forEach(name => {
-                let style = parentStyle[name];
+                const style = parentStyle[name];
                 computed.dim[name] = parseInt(style.substring(0, style.length - 2))
             });
 
