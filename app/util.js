@@ -60,7 +60,7 @@ function sleep(duration)
 }
 
 module.exports = {
-    checkForExpire: checkForExpire,
-    sleep: sleep,
-    dig: dig
+    checkForExpire,
+    sleep,
+    dig
 };

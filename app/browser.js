@@ -29,7 +29,8 @@ async function start()
 
 async function open()
 {
-    let page = await browser.newPage();
+    const page = await browser.newPage();
+
     await page.setViewport({
         width: 1920,
         height: 1080
@@ -39,6 +40,6 @@ async function open()
 }
 
 module.exports = {
-    start: start,
-    open: open
+    start,
+    open
 };

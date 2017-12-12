@@ -71,8 +71,8 @@ function fromToken(token)
 }
 
 module.exports = {
-    open: open,
-    close: close,
+    open,
+    close,
 
-    fromToken: fromToken
+    fromToken
 };

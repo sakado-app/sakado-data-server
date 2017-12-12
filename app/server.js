@@ -1,5 +1,6 @@
 const fs = require('fs');
 const jayson = require('jayson/promise');
+import promisify from 'util';
 
 const logger = require('./logger');
 const sessionManager = require('./session_manager');
@@ -75,12 +76,14 @@ async function crashReport(session, id)
 {
     let folder = `crashes/${id}/`;
 
-    if (!fs.existsSync('crashes/')) {
+    if (!(await promisify(fs.exists)('crashes/')))
+    {
         fs.mkdirSync('crashes/');
     }
 
-    fs.mkdirSync(folder);
-    fs.writeFileSync(folder + id + '.json', JSON.stringify({
+    await promisify(fs.mkdir)(folder);
+
+    await promisify(fs.writeFile)(folder + id + '.json', JSON.stringify({
         url: await session.page.url(),
         content: await session.page.content()
     }, null, 4));
