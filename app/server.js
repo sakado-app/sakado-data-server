@@ -74,7 +74,7 @@ async function handle(server, name, func, args)
 
 async function crashReport(session, id)
 {
-    let folder = `crashes/${id}/`;
+    const folder = `crashes/${id}/`;
 
     if (!(await promisify(fs.exists)('crashes/')))
     {
