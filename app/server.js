@@ -1,6 +1,6 @@
 const fs = require('fs');
 const jayson = require('jayson/promise');
-import promisify from 'util';
+const promisify = require('util').promisify;
 
 const logger = require('./logger');
 const sessionManager = require('./session_manager');
