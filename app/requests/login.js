@@ -43,10 +43,10 @@ async function login(session, { username, password })
     });
 
     await page.click('.username-field');
-    await page.keyboard.type(username, { delay: 100 });
+    await page.keyboard.type(username);
 
     await page.click('.password-field');
-    await page.keyboard.type(password, { delay: 100 });
+    await page.keyboard.type(password);
 
     await page.click('.login-button');
 
@@ -65,19 +65,29 @@ async function login(session, { username, password })
         return Promise.resolve(document.querySelector(".Message_Cadre0").querySelector(".Texte10.Espace.AlignementHaut").innerText.split('\n')[0]);
     });
 
-    if (result === 'success')
+    if (result !== 'success')
     {
-        logger.info(`Successfully logged in session #${session.id} : '${username}'`);
+        logger.info(`Login failed for session #${session.id} : ${result}`);
 
-        session.username = username;
-        session.password = password;
-
-        return;
+        throw new RequestError(result);
     }
 
-    logger.info(`Login failed for session #${session.id} : ${result}`);
+    logger.info(`Successfully logged in session #${session.id} : '${username}'`);
 
-    throw new RequestError(result);
+    session.username = username;
+    session.password = password;
+
+    let [classe, name] = await page.evaluate(function() {
+        let content = document.getElementById("GInterface.Instances[0]_aideApresConnexion").innerText;
+        let full = content.split('-')[1].trim();
+
+        let classe = full.substring(full.indexOf('(') + 1, full.indexOf(')'));
+        let name = full.substring(0, full.indexOf('(') - 1);
+
+        return [classe, name];
+    });
+
+    return { classe, name };
 }
 
 module.exports = login;
