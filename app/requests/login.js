@@ -19,12 +19,12 @@
 const logger = require('../logger');
 const RequestError = require('../error');
 
-async function login(session, { username, password })
+async function login(session, { link, username, password })
 {
     logger.info(`Starting login for session #${session.id}, account '${username}'`);
 
     const page = session.page;
-    await page.goto('http://notes.lyc-joffre-montpellier.ac-montpellier.fr/eleve.html?login=true', { waitUntil: 'networkidle2' });
+    await page.goto(`${link}eleve.html?login=true`, { waitUntil: 'networkidle2' });
 
     const url = page.url();
     logger.info(`Login start URL for session #${session.id} : '${url}'`);
