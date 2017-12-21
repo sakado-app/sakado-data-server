@@ -77,17 +77,18 @@ async function login(session, { link, username, password })
     session.username = username;
     session.password = password;
 
-    let [classe, name] = await page.evaluate(function() {
+    let [classe, name, avatar] = await page.evaluate(function() {
         let content = document.getElementById("GInterface.Instances[0]_aideApresConnexion").innerText;
         let full = content.split('-')[1].trim();
 
         let classe = full.substring(full.indexOf('(') + 1, full.indexOf(')'));
         let name = full.substring(0, full.indexOf('(') - 1);
+        let avatar = document.querySelector("img").src;
 
-        return [classe, name];
+        return [classe, name, avatar];
     });
 
-    return { classe, name };
+    return { classe, name, avatar };
 }
 
 module.exports = login;

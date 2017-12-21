@@ -17,9 +17,11 @@
  */
 
 const sessionManager = require('../session_manager');
+const logger = require('../logger');
 
 function close(session)
 {
+    logger.info(`Closed session ${session.id}`);
     return sessionManager.close(session.token);
 }
 
