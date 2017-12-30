@@ -21,6 +21,8 @@ const util = require('../util');
 const COURS_LENGTH = 308;
 const COURS_HEIGHT = 75;
 
+let first = true;
+
 async function edt(session)
 {
     await util.checkForExpire(session);
@@ -32,6 +34,7 @@ async function edt(session)
         height: 1080
     });
 
+    console.log('1');
     await page.evaluate(function() {
         const menus = document.querySelectorAll(".objetmenuprincipalComboLabel");
 
@@ -42,17 +45,129 @@ async function edt(session)
             }
         });
     });
+    console.log('1k');
 
     await page.click('.edt-button');
 
-    await page.waitFor('table.Cours');
+    await page.waitFor('.Calendrier_Jour_Selection');
     await page.waitFor('.AlignementMilieu.Insecable');
 
+    let weekNo = util.getWeekNo();
+
+    // Selecting current week
+    let selectCurrentWeek = async () => {
+        await page.click('#GInterface\\.Instances\\[1\\]\\.Instances\\[0\\]_j_' + weekNo);
+        await forceUpdate(page);
+    };
+    await selectCurrentWeek();
+
+    let currentWeek = await updateWeek(page, false);
+
+    const weeks = [];
+    weeks[0] = await readWeek(page);
+
+    if (weekNo !== 44)
+    {
+        await updateWeek(page, true);
+        weeks[1] = await readWeek(page);
+    }
+    else
+    {
+        weeks[1] = [];
+    }
+
+    // Getting back to current week, else homeworks and other shit will be shifted forward
+    await page.click("#" + currentWeek);
+    return weeks;
+}
+
+async function updateWeek(page, next)
+{
+    console.log('2 : ' + next + ', ' + first);
+    const weekId = await page.evaluate(function(next, first)
+    {
+        let week = document.querySelector('.Calendrier_Jour_Selection');
+        let skipWeek = () => {
+            let first = week.id.substring(0, week.id.length - 2);
+            if (!first.endsWith('_'))
+            {
+                first += '_';
+            }
+
+            let last = week.id.substring(week.id.length - 2, week.id.length);
+
+            if (last.startsWith('_'))
+            {
+                last = last.substring(1, 2);
+            }
+
+            week = document.getElementById(first + (parseInt(last) + 1));
+        };
+
+        // Please don't judge
+        if (new Date().getDay() >= 6 && first) skipWeek();
+        let skipEmptyWeeks = () => { while (week.innerText === 'F') skipWeek(); };
+        skipEmptyWeeks();
+
+        if (next) skipWeek();
+        skipEmptyWeeks();
+
+        let final = week.id;
+        let result = '';
+
+        for (let i = 0, len = final.length; i < len; i++)
+        {
+            let char = final.charAt(i);
+
+            if (char === '.' || char === '[' || char === ']' )
+            {
+                result += '\\';
+            }
+
+            result += char;
+        }
+
+        return result;
+    }, next, first);
+    console.log('2k');
+
+    if (first === true)
+    {
+        first = false;
+    }
+
+    await page.click(`#${weekId}`);
+    await forceUpdate(page);
+
+    await page.waitFor('table.Cours');
+
+    return weekId;
+}
+
+async function forceUpdate(page)
+{
+    // This below, force the old EDT entries to remove during the new ones loading
+    await page.setViewport({
+        width: 1920,
+        height: 1000
+    });
+    await page.setViewport({
+        width: 1920,
+        height: 1080
+    });
+}
+
+async function readWeek(page)
+{
+    await page.waitFor('table.Cours');
+
+    console.log('3');
     const cours = await page.evaluate(function()
     {
         const process = str => str.trim().replace('\n', '');
 
         let coursArray = [];
+
         const result = document.querySelectorAll('table.Cours');
 
         for (let i = 0; i < result.length; i++) {
@@ -117,16 +232,26 @@ async function edt(session)
 
         return Promise.resolve(coursArray);
     });
+    console.log('3k');
+
+    console.log('4');
+    const dayShift = await page.evaluate(function () {
+        return parseInt(document.getElementById("GInterface.Instances[1].Instances[1].Instances[0]_Date0").innerText.substring(5,7));
+    });
+    console.log('4k');
 
     cours.forEach(c => {
         c.length = Math.round(c.dim.height / COURS_HEIGHT);
         c.hour = Math.round(c.dim.top / COURS_HEIGHT);
-        c.day = Math.round(c.dim.left / COURS_LENGTH);
+        c.day = dayShift + Math.round(c.dim.left / COURS_LENGTH);
 
         delete c.dim;
     });
 
-    return cours;
+    return {
+        from: dayShift,
+        content: cours
+    };
 }
 
 module.exports = edt;

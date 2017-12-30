@@ -25,10 +25,12 @@ async function homeworks(session)
     const page = session.page;
 
     await page.mouse.click(200, 40);
-    await page.waitFor(".ElementPourNavigation.AlignementGauche.AvecMain.FondBlanc");
+    // await page.waitFor(".ElementPourNavigation.AlignementGauche.AvecMain.FondBlanc");
 
+    await page.waitFor("#GInterface\\.Instances\\[1\\]\\.Instances\\[0\\]_GrilleCalendrier");
+    await page.waitFor(".Image_Bandeau_Deployer");
     await page.click(".Image_Bandeau_Deployer");
-    await page.waitFor(".jIECheckBox_Conteneur");
+    // await page.waitFor(".jIECheckBox_Conteneur");
 
     return await page.evaluate(function()
     {

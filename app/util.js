@@ -54,6 +54,29 @@ function dig(element, times)
     return element;
 }
 
+function getWeekNo()
+{
+    let date = new Date();
+    let month = date.getMonth();
+
+    let days = Math.floor(month * 30.5) - (month % 2) + date.getDate();
+    let weekNo = Math.floor(days / 7);
+
+    weekNo -= 35;
+
+    if (weekNo < 1)
+    {
+        weekNo += 52;
+    }
+
+    if (weekNo > 44) // Pronote max week
+    {
+        weekNo = 44;
+    }
+
+    return weekNo;
+}
+
 function sleep(duration)
 {
     return new Promise(r => setTimeout(r, duration));
@@ -62,5 +85,6 @@ function sleep(duration)
 module.exports = {
     checkForExpire,
     sleep,
-    dig
+    dig,
+    getWeekNo
 };

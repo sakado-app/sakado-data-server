@@ -88,7 +88,7 @@ async function crashReport(session, id)
         content: await session.page.content()
     }, null, 4));
 
-    await session.page.screenshot({ path: folder + id + '.png', fullPage: true });
+    await session.page.screenshot({ path: folder + id + '.png' });
 }
 
 module.exports = start;
