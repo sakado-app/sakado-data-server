@@ -21,8 +21,6 @@ const util = require('../util');
 const COURS_LENGTH = 308;
 const COURS_HEIGHT = 75;
 
-let first = true;
-
 async function edt(session)
 {
     await util.checkForExpire(session);
@@ -61,14 +59,14 @@ async function edt(session)
     };
     await selectCurrentWeek();
 
-    let currentWeek = await updateWeek(page, false);
+    let currentWeek = await updateWeek(page, false, true);
 
     const weeks = [];
     weeks[0] = await readWeek(page);
 
     if (weekNo !== 44)
     {
-        await updateWeek(page, true);
+        await updateWeek(page, true, false);
         weeks[1] = await readWeek(page);
     }
     else
@@ -81,7 +79,7 @@ async function edt(session)
     return weeks;
 }
 
-async function updateWeek(page, next)
+async function updateWeek(page, next, first)
 {
     console.log('2 : ' + next + ', ' + first);
     const weekId = await page.evaluate(function(next, first)
@@ -131,14 +129,11 @@ async function updateWeek(page, next)
     }, next, first);
     console.log('2k');
 
-    if (first === true)
-    {
-        first = false;
-    }
-
+    console.log(`Clicking on #${weekId}`);
     await page.click(`#${weekId}`);
     await forceUpdate(page);
 
+    console.log(`...`);
     await page.waitFor('table.Cours');
 
     return weekId;
@@ -243,7 +238,8 @@ async function readWeek(page)
     cours.forEach(c => {
         c.length = Math.round(c.dim.height / COURS_HEIGHT);
         c.hour = Math.round(c.dim.top / COURS_HEIGHT);
-        c.day = dayShift + Math.round(c.dim.left / COURS_LENGTH);
+        c.weekday = Math.round(c.dim.left / COURS_LENGTH);
+        c.day = dayShift + c.weekday;
 
         delete c.dim;
     });
