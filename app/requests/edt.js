@@ -1,28 +1,16 @@
-/*
- *  Sakado, an app for school
- *  Copyright (C) 2017 Adrien 'Litarvan' Navratil
- *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 const util = require('../util');
 
 const COURS_LENGTH = 308;
 const COURS_HEIGHT = 75;
 
+/*
+    Parts of this code are taken from https://github.com/ColbertApp/app/blob/master/app/src/main/assets/app.js
+    By Théophile 'FliiFe' Cailliau <theophile.cailliau@gmail.com>
+ */
+
 async function edt(session)
 {
+    console.log('(Checking for expire...)');
     await util.checkForExpire(session);
 
     const page = session.page;
@@ -32,131 +20,52 @@ async function edt(session)
         height: 1080
     });
 
-    console.log('1');
-    await page.evaluate(function() {
-        const menus = document.querySelectorAll(".objetmenuprincipalComboLabel");
+    console.log('\n-------> EDT START');
+    console.log('Clicking on link...');
+    await page.evaluate(() => {
+        let link = Array.prototype.slice.call(document.getElementsByTagName('li')).filter(function(elem) {
+            return elem.getAttribute('aria-label') === 'Emploi du temps';
+        })[0];
 
-        menus.forEach(m => {
-            if (m.innerText === 'Vie\nscolaire')
-            {
-                m.classList.add('edt-button');
-            }
-        });
+        link.focus();
+        link.click();
     });
-    console.log('1k');
 
-    await page.click('.edt-button');
+    console.log('Waiting for EDT...');
+    await waitForLoading(page);
 
-    await page.waitFor('.Calendrier_Jour_Selection');
-    await page.waitFor('.AlignementMilieu.Insecable');
+    await skipEmptyWeeks(page);
 
-    let weekNo = util.getWeekNo();
+    let first = await currentWeek(page);
+    let edt = [];
 
-    // Selecting current week
-    let selectCurrentWeek = async () => {
-        await page.click('#GInterface\\.Instances\\[1\\]\\.Instances\\[0\\]_j_' + weekNo);
-        await forceUpdate(page);
-    };
-    await selectCurrentWeek();
+    console.log('Reading first week...');
+    edt[0] = await readWeek(page);
 
-    let currentWeek = await updateWeek(page, false, true);
-
-    const weeks = [];
-    weeks[0] = await readWeek(page);
-
-    if (weekNo !== 44)
+    if (await nextWeek(page))
     {
-        await updateWeek(page, true, false);
-        weeks[1] = await readWeek(page);
+        await skipEmptyWeeks(page);
+
+        console.log('Reading second week...');
+        edt[1] = await readWeek(page);
     }
     else
     {
-        weeks[1] = [];
+        console.log('No need to read next week (max)');
     }
 
-    // Getting back to current week, else homeworks and other shit will be shifted forward
-    await page.click("#" + currentWeek);
-    return weeks;
-}
+    console.log('Reverting to first real week...');
+    await nextWeek(page, first);
 
-async function updateWeek(page, next, first)
-{
-    console.log('2 : ' + next + ', ' + first);
-    const weekId = await page.evaluate(function(next, first)
-    {
-        let week = document.querySelector('.Calendrier_Jour_Selection');
-        let skipWeek = () => {
-            let first = week.id.substring(0, week.id.length - 2);
-            if (!first.endsWith('_'))
-            {
-                first += '_';
-            }
+    console.log('Done !');
+    console.log(JSON.stringify(edt));
 
-            let last = week.id.substring(week.id.length - 2, week.id.length);
-
-            if (last.startsWith('_'))
-            {
-                last = last.substring(1, 2);
-            }
-
-            week = document.getElementById(first + (parseInt(last) + 1));
-        };
-
-        // Please don't judge
-        if (new Date().getDay() >= 6 && first) skipWeek();
-        let skipEmptyWeeks = () => { while (week.innerText === 'F') skipWeek(); };
-        skipEmptyWeeks();
-
-        if (next) skipWeek();
-        skipEmptyWeeks();
-
-        let final = week.id;
-        let result = '';
-
-        for (let i = 0, len = final.length; i < len; i++)
-        {
-            let char = final.charAt(i);
-
-            if (char === '.' || char === '[' || char === ']' )
-            {
-                result += '\\';
-            }
-
-            result += char;
-        }
-
-        return result;
-    }, next, first);
-    console.log('2k');
-
-    console.log(`Clicking on #${weekId}`);
-    await page.click(`#${weekId}`);
-    await forceUpdate(page);
-
-    console.log(`...`);
-    await page.waitFor('table.Cours');
-
-    return weekId;
-}
-
-async function forceUpdate(page)
-{
-    // This below, force the old EDT entries to remove during the new ones loading
-    await page.setViewport({
-        width: 1920,
-        height: 1000
-    });
-    await page.setViewport({
-        width: 1920,
-        height: 1080
-    });
+    return edt;
 }
 
 async function readWeek(page)
 {
-    await page.waitFor('table.Cours');
-
-    console.log('3');
+    console.log('Reading !');
     const cours = await page.evaluate(function()
     {
         const process = str => str.trim().replace('\n', '');
@@ -165,7 +74,8 @@ async function readWeek(page)
 
         const result = document.querySelectorAll('table.Cours');
 
-        for (let i = 0; i < result.length; i++) {
+        for (let i = 0; i < result.length; i++)
+        {
             const cours = result[i];
             let computed = {};
             const lines = Array.from(cours.querySelectorAll('div.AlignementMilieu'));
@@ -227,14 +137,12 @@ async function readWeek(page)
 
         return Promise.resolve(coursArray);
     });
-    console.log('3k');
 
-    console.log('4');
-    const dayShift = await page.evaluate(function () {
-        return parseInt(document.getElementById("GInterface.Instances[1].Instances[1].Instances[0]_Date0").innerText.substring(5,7));
-    });
-    console.log('4k');
+    console.log('Parsing shift...');
+    const dayShift = await page.evaluate(() =>
+        parseInt(document.getElementById("GInterface.Instances[1].Instances[1].Instances[0]_Date0").innerText.substring(5,7)));
 
+    console.log('Processing...');
     cours.forEach(c => {
         c.length = Math.round(c.dim.height / COURS_HEIGHT);
         c.hour = Math.round(c.dim.top / COURS_HEIGHT);
@@ -244,10 +152,76 @@ async function readWeek(page)
         delete c.dim;
     });
 
+    console.log('Read ' + cours.length + ' cours !');
     return {
         from: dayShift,
         content: cours
     };
+}
+
+async function waitForLoading(page)
+{
+    console.log('Waiting for loading...');
+
+    await util.sleep(500);
+    await page.waitForFunction(() => GInterface &&
+            GInterface.Instances &&
+            GInterface.Instances.length >= 2 &&
+            GInterface.Instances[1] &&
+            GInterface.Instances[1].donneesGrille &&
+            GInterface.Instances[1].donneesGrille.listeCours &&
+            GInterface.Instances[1].donneesGrille.listeCours.ListeElements &&
+            GInterface.Instances[1].donneesGrille.listeCours.ListeElements.length !== undefined &&
+            document.getElementsByClassName('Image_Attendre').length === 0);
+
+    console.log('Loaded !');
+}
+
+async function nextWeek(page, id)
+{
+    console.log('Skipping week...');
+    let next = id == null ? await currentWeek(page) + 1 : id;
+
+    if (next > 44)
+    {
+        return false;
+    }
+
+    console.log('Setting week : ' + next);
+    await page.evaluate((id) => {
+        GInterface.Instances[1].Instances[0].SetSelection(id);
+    }, next);
+
+    await waitForLoading(page);
+
+    return true;
+}
+
+async function skipEmptyWeeks(page)
+{
+    console.log('Skipping empty weeks...');
+    while (await isWeekEmpty(page))
+    {
+        if (await nextWeek(page)) break;
+    }
+}
+
+async function currentWeek(page)
+{
+    console.log('Querying current week...');
+    let result =  await page.evaluate(() => Promise.resolve(GInterface.Instances[1].Instances[0].Position));
+    console.log('Current week is : ' + result);
+
+    return result;
+}
+
+async function isWeekEmpty(page)
+{
+    console.log('Is week empty ?');
+    let result =  await page.evaluate(() => Promise.resolve(document.querySelectorAll('table.Cours').length === 0));
+    console.log('Week is empty = ' + result);
+
+    return result;
 }
 
 module.exports = edt;
