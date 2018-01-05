@@ -58,7 +58,7 @@ async function edt(session)
     await nextWeek(page, first);
 
     console.log('Done !');
-    console.log(JSON.stringify(edt));
+    // console.log(JSON.stringify(edt));
 
     return edt;
 }
