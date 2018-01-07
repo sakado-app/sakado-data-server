@@ -13,7 +13,22 @@ function start(port)
 
     for (const [name, func] of Object.entries(requests))
     {
-        methods[name] = args => handle(server, name, func, args);
+        methods[name] = async (args) => {
+            try
+            {
+                return await handle(server, name, func, args);
+            }
+            catch (e)
+            {
+                if (!e['code'])
+                {
+                    logger.error('Internal error');
+                    console.error(e);
+                }
+
+                throw e;
+            }
+        };
     }
 
     const server = jayson.server(methods);

@@ -67,6 +67,10 @@ async function close(token)
 
 function fromToken(token)
 {
+    let a = '';
+    Object.keys(sessions).map(function(objectKey, index) {
+        a += objectKey + ', ';
+    });
     return sessions[token];
 }
 
