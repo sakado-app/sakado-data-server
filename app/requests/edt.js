@@ -10,7 +10,6 @@ const COURS_HEIGHT = 75;
 
 async function edt(session)
 {
-    console.log('(Checking for expire...)');
     await util.checkForExpire(session);
 
     const page = session.page;
@@ -20,8 +19,6 @@ async function edt(session)
         height: 1080
     });
 
-    console.log('\n-------> EDT START');
-    console.log('Clicking on link...');
     await page.evaluate(() => {
         let link = Array.prototype.slice.call(document.getElementsByTagName('li')).filter(function(elem) {
             return elem.getAttribute('aria-label') === 'Emploi du temps';
@@ -31,41 +28,27 @@ async function edt(session)
         link.click();
     });
 
-    console.log('Waiting for EDT...');
     await waitForLoading(page);
-
     await skipEmptyWeeks(page);
 
     let first = await currentWeek(page);
     let edt = [];
 
-    console.log('Reading first week...');
     edt[0] = await readWeek(page);
 
     if (await nextWeek(page))
     {
         await skipEmptyWeeks(page);
-
-        console.log('Reading second week...');
         edt[1] = await readWeek(page);
     }
-    else
-    {
-        console.log('No need to read next week (max)');
-    }
 
-    console.log('Reverting to first real week...');
     await nextWeek(page, first);
-
-    console.log('Done !');
-    // console.log(JSON.stringify(edt));
 
     return edt;
 }
 
 async function readWeek(page)
 {
-    console.log('Reading !');
     const cours = await page.evaluate(function()
     {
         const process = str => str.trim().replace('\n', '');
@@ -138,11 +121,9 @@ async function readWeek(page)
         return Promise.resolve(coursArray);
     });
 
-    console.log('Parsing shift...');
     const dayShift = await page.evaluate(() =>
         parseInt(document.getElementById("GInterface.Instances[1].Instances[1].Instances[0]_Date0").innerText.substring(5,7)));
 
-    console.log('Processing...');
     cours.forEach(c => {
         c.length = Math.round(c.dim.height / COURS_HEIGHT);
         c.hour = Math.round(c.dim.top / COURS_HEIGHT);
@@ -152,7 +133,6 @@ async function readWeek(page)
         delete c.dim;
     });
 
-    console.log('Read ' + cours.length + ' cours !');
     return {
         from: dayShift,
         content: cours
@@ -161,8 +141,6 @@ async function readWeek(page)
 
 async function waitForLoading(page)
 {
-    console.log('Waiting for loading...');
-
     await util.sleep(500);
     await page.waitForFunction(() => GInterface &&
             GInterface.Instances &&
@@ -173,21 +151,17 @@ async function waitForLoading(page)
             GInterface.Instances[1].donneesGrille.listeCours.ListeElements &&
             GInterface.Instances[1].donneesGrille.listeCours.ListeElements.length !== undefined &&
             document.getElementsByClassName('Image_Attendre').length === 0);
-
-    console.log('Loaded !');
 }
 
 async function nextWeek(page, id)
 {
-    console.log('Skipping week...');
-    let next = id == null ? await currentWeek(page) + 1 : id;
+    let next = id === null ? await currentWeek(page) + 1 : id;
 
     if (next > 44)
     {
         return false;
     }
 
-    console.log('Setting week : ' + next);
     await page.evaluate((id) => {
         GInterface.Instances[1].Instances[0].SetSelection(id);
     }, next);
@@ -199,7 +173,6 @@ async function nextWeek(page, id)
 
 async function skipEmptyWeeks(page)
 {
-    console.log('Skipping empty weeks...');
     while (await isWeekEmpty(page))
     {
         if (await nextWeek(page)) break;
@@ -208,20 +181,12 @@ async function skipEmptyWeeks(page)
 
 async function currentWeek(page)
 {
-    console.log('Querying current week...');
-    let result =  await page.evaluate(() => Promise.resolve(GInterface.Instances[1].Instances[0].Position));
-    console.log('Current week is : ' + result);
-
-    return result;
+    return await page.evaluate(() => Promise.resolve(GInterface.Instances[1].Instances[0].Position));
 }
 
 async function isWeekEmpty(page)
 {
-    console.log('Is week empty ?');
-    let result =  await page.evaluate(() => Promise.resolve(document.querySelectorAll('table.Cours').length === 0));
-    console.log('Week is empty = ' + result);
-
-    return result;
+    return await page.evaluate(() => Promise.resolve(document.querySelectorAll('table.Cours').length === 0));
 }
 
 module.exports = edt;
