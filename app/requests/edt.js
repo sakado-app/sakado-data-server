@@ -155,7 +155,8 @@ async function waitForLoading(page)
 
 async function nextWeek(page, id)
 {
-    let next = id === null ? await currentWeek(page) + 1 : id;
+    // Do not change id == null to id === null !!!
+    let next = id == null ? await currentWeek(page) + 1 : id;
 
     if (next > 44)
     {
