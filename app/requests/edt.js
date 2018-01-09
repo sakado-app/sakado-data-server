@@ -19,14 +19,7 @@ async function edt(session)
         height: 1080
     });
 
-    await page.evaluate(() => {
-        let link = Array.prototype.slice.call(document.getElementsByTagName('li')).filter(function(elem) {
-            return elem.getAttribute('aria-label') === 'Emploi du temps';
-        })[0];
-
-        link.focus();
-        link.click();
-    });
+    await util.goTo('Emploi du temps');
 
     await waitForLoading(page);
     await skipEmptyWeeks(page);
@@ -141,7 +134,7 @@ async function readWeek(page)
 
 async function waitForLoading(page)
 {
-    await util.sleep(500);
+    await util.waitForLoading(page);
     await page.waitForFunction(() => GInterface &&
             GInterface.Instances &&
             GInterface.Instances.length >= 2 &&
@@ -149,8 +142,7 @@ async function waitForLoading(page)
             GInterface.Instances[1].donneesGrille &&
             GInterface.Instances[1].donneesGrille.listeCours &&
             GInterface.Instances[1].donneesGrille.listeCours.ListeElements &&
-            GInterface.Instances[1].donneesGrille.listeCours.ListeElements.length !== undefined &&
-            document.getElementsByClassName('Image_Attendre').length === 0);
+            GInterface.Instances[1].donneesGrille.listeCours.ListeElements.length !== undefined);
 }
 
 async function nextWeek(page, id)

@@ -82,9 +82,29 @@ function sleep(duration)
     return new Promise(r => setTimeout(r, duration));
 }
 
+async function goTo(page, name)
+{
+    await page.evaluate(name => {
+        let link = Array.prototype.slice.call(document.getElementsByTagName('li')).filter(function(elem) {
+            return elem.getAttribute('aria-label') === name;
+        })[0];
+
+        link.focus();
+        link.click();
+    }, name);
+}
+
+async function waitForLoading(page)
+{
+    await sleep(500);
+    await page.waitForFunction(() => document.getElementsByClassName('Image_Attendre').length === 0);
+}
+
 module.exports = {
     checkForExpire,
     sleep,
     dig,
-    getWeekNo
+    getWeekNo,
+    goTo,
+    waitForLoading
 };
