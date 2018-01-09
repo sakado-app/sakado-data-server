@@ -19,7 +19,7 @@ async function edt(session)
         height: 1080
     });
 
-    await util.goTo('Emploi du temps');
+    await util.goTo(page, 'Emploi du temps');
 
     await waitForLoading(page);
     await skipEmptyWeeks(page);

@@ -16,5 +16,5 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-['open', 'login', 'handshake', 'edt', 'homeworks', 'close']
+['open', 'login', 'handshake', 'edt', 'homeworks', 'notes', 'close']
     .forEach(r => exports[r] = require(`./${r}`));
