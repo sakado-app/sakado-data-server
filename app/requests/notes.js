@@ -27,6 +27,7 @@ async function notes({ page })
 
     await util.goTo(page, 'Détail des notes');
     await util.waitForLoading(page);
+    await page.waitFor('#GInterface\\.Instances\\[1\\]\\.Instances\\[1\\]_piedDeListe');
 
     let moyennes = await page.evaluate(() => {
         let moyennes = document.getElementById('GInterface.Instances[1].Instances[1]_piedDeListe').innerText.split('\n');
