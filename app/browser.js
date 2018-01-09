@@ -24,7 +24,7 @@ let browser;
 async function start()
 {
     logger.info(`Starting chrome browser...`);
-    browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'], headless: false });
+    browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-setuid-sandbox'], headless: process.env.DEBUG !== true });
 }
 
 async function open()
