@@ -36,9 +36,10 @@ async function checkForExpire(session)
 
     logger.info(`Session id #${session.id} is expired, reconnecting...`);
 
-    await require('./requests/login')('aubergine', session, {
+    await require('./requests/login')(session, {
         username: session.username,
-        password: session.password
+        password: session.password,
+        link: session.link
     });
 
     return false;

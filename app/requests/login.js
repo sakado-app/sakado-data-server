@@ -76,6 +76,7 @@ async function login(session, { link, username, password })
 
     session.username = username;
     session.password = password;
+    session.link = link;
 
     let [classe, name, avatar] = await page.evaluate(function() {
         let content = document.getElementById("GInterface.Instances[0]_aideApresConnexion").innerText;
