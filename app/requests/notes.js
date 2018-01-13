@@ -8,7 +8,7 @@ async function notes({ page })
     await page.waitFor('#GInterface\\.Instances\\[1\\]_colonne_1');
 
     let lastNotes = await page.evaluate(() => {
-        let notes = document.getElementById('GInterface.Instances[1]_colonne_1').childNodes[1].childNodes[1].childNodes[0].firstChild;
+        let notes = document.getElementById('GInterface.Instances[1]_colonne_1').childNodes[1].childNodes[1].childNodes[0].firstChild.childNodes;
         let result = [];
 
         notes.forEach(n => {
