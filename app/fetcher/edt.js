@@ -56,7 +56,7 @@ async function readWeek(page)
             {
                 let info = process(lines[0].innerText);
 
-                if (info === 'Prof. absent')
+                if (info === 'Prof. absent' || info === 'Cours annulé')
                 {
                     computed.away = true;
                 }
