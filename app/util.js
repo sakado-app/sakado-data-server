@@ -16,68 +16,6 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const logger = require('./logger');
-
-async function checkForExpire(session)
-{
-    await session.page.mouse.move(500, 500);
-    await sleep(1000);
-
-    const expired = await session.page.evaluate(function()
-    {
-        const el = document.querySelector('#waispan_id');
-        return Promise.resolve(el !== null && el.innerText === "Vous avez été déconnecté");
-    });
-
-    if (!expired)
-    {
-        return true;
-    }
-
-    logger.info(`Session id #${session.id} is expired, reconnecting...`);
-
-    await require('./requests/login')(session, {
-        username: session.username,
-        password: session.password,
-        link: session.link
-    });
-
-    return false;
-}
-
-function dig(element, times)
-{
-    for (let i = 0; i < times; i++)
-    {
-        element = element.firstChild;
-    }
-
-    return element;
-}
-
-function getWeekNo()
-{
-    let date = new Date();
-    let month = date.getMonth();
-
-    let days = Math.floor(month * 30.5) - (month % 2) + date.getDate();
-    let weekNo = Math.floor(days / 7);
-
-    weekNo -= 35;
-
-    if (weekNo < 1)
-    {
-        weekNo += 52;
-    }
-
-    if (weekNo > 44) // Pronote max week
-    {
-        weekNo = 44;
-    }
-
-    return weekNo;
-}
-
 function sleep(duration)
 {
     return new Promise(r => setTimeout(r, duration));
@@ -102,10 +40,6 @@ async function waitForLoading(page)
 }
 
 module.exports = {
-    checkForExpire,
-    sleep,
-    dig,
-    getWeekNo,
     goTo,
     waitForLoading
 };

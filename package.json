@@ -1,6 +1,6 @@
 {
   "name": "sakado-data-server",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Sakado app data server",
   "main": "index.js",
   "repository": "https://github.com/sakado-app/sakado-data-server",

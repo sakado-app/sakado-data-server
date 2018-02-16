@@ -16,14 +16,8 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-const util = require('../util');
-
-async function homeworks(session)
+async function homeworks(page)
 {
-    await util.checkForExpire(session);
-
-    const page = session.page;
-
     await page.mouse.click(200, 40);
     // await page.waitFor(".ElementPourNavigation.AlignementGauche.AvecMain.FondBlanc");
 
@@ -35,7 +29,6 @@ async function homeworks(session)
     return await page.evaluate(function()
     {
         // UTIL START
-        const DAYS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
         const MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 
         function dig(element, times)
@@ -46,17 +39,6 @@ async function homeworks(session)
             }
 
             return element;
-        }
-
-        function parseDay(str)
-        {
-            const [weekday, day, month] = str.split(' ');
-
-            return {
-                weekday: DAYS.indexOf(weekday) + 1,
-                day: parseInt(day),
-                month: MONTHS.indexOf(month) + 1
-            };
         }
         // UTIL END
 
@@ -79,11 +61,19 @@ async function homeworks(session)
                     const [subject, subContent] = dig(homework, 4).childNodes;
                     const [since, content] = dig(subContent, 7).childNodes;
 
+                    let current = new Date();
+                    let splitDate = day.innerText.trim().toLowerCase().split(' ');
+
+                    current.setDate(parseInt(splitDate[1]));
+                    current.setMonth(MONTHS.indexOf(splitDate[2]) + 1);
+                    current.setHours(0);
+                    current.setMonth(0);
+                    current.setSeconds(0);
+
                     homeworksArray.push({
-                        subject: subject.innerText,
-                        since: since.innerText.substring(9, 14),
-                        content: content.innerText,
-                        day: parseDay(day.innerText.trim().toLowerCase())
+                        subject: subject.innerText.trim(),
+                        content: content.innerText.trim(),
+                        time: current.getTime()
                     });
                 }
             }

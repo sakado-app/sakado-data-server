@@ -3,77 +3,57 @@ const jayson = require('jayson/promise');
 const promisify = require('util').promisify;
 
 const logger = require('./logger');
-const sessionManager = require('./session_manager');
+const browser = require('./browser');
+
 const RequestError = require('./error');
+
+const login = require('./fetcher/login');
+const edtFetch = require('./fetcher/edt');
+const notes = require('./fetcher/notes');
+const homeworksFetch = require('./fetcher/homeworks');
 
 function start(port)
 {
-    const methods = {};
-    const requests = require('./requests');
-
-    for (const [name, func] of Object.entries(requests))
-    {
-        methods[name] = async (args) => {
+    const server = jayson.server({
+        fetch: (args) => {
             try
             {
-                return await handle(server, name, func, args);
+                return handle(server, args);
             }
-            catch (e)
+            catch(err)
             {
-                if (!e['code'])
-                {
-                    logger.error('Internal error');
-                    console.error(e);
-                }
+                logger.error(`Internal error`);
+                console.error(err);
 
-                throw e;
+                throw new server.error(-32603, err.toString());
             }
-        };
-    }
-
-    const server = jayson.server(methods);
+        }
+    });
 
     server.tcp().listen(port);
     logger.info(`Server listening on 127.0.0.1:${port}`);
 }
 
-async function handle(server, name, func, args)
+async function handle(server, args)
 {
-    if (name === 'open')
-    {
-        return await func(args);
-    }
-
-    let token = args.token;
-
-    if (token === undefined)
-    {
-        throw new server.error(-32602, 'Missing field "token"');
-    }
-
-    let session = sessionManager.fromToken(token);
-
-    if (name !== 'status' && session === undefined)
-    {
-        throw new server.error(-32602, `Can't find session with token '${token}'`);
-    }
+    let page = await browser.open();
 
     try
     {
-        return await func(session, args);
+        return await fetch(page, args);
     }
     catch (err)
     {
         if (!(err instanceof RequestError))
         {
-            logger.error(`Error during request '${name}'`);
+            logger.error(`Error during request`);
             console.error(err);
 
             let crashID = `crash-${new Date().getTime()}`;
 
             try
             {
-                await crashReport(session, crashID);
+                await crashReport(page, crashID, err);
                 logger.error(`Saved crash report to crashes/${crashID}`);
             }
             catch(err)
@@ -87,7 +67,31 @@ async function handle(server, name, func, args)
     }
 }
 
-async function crashReport(session, id)
+async function fetch(page, { username, password, link })
+{
+    let time = Date.now();
+
+    let { classe, name, avatar } = await login(page, username, password, link);
+    let edt = await edtFetch(page);
+    let { lastNotes, moyennes } = await notes(page);
+    let homeworks = await homeworksFetch(page);
+
+    logger.info(`Fetched user '${username}' in ${(Date.now() - time) / 1000}s`);
+    await page.close();
+
+    return {
+        classe,
+        name,
+        avatar,
+
+        edt,
+        lastNotes,
+        moyennes,
+        homeworks
+    };
+}
+
+async function crashReport(page, id, err)
 {
     const folder = `crashes/${id}/`;
 
@@ -99,11 +103,13 @@ async function crashReport(session, id)
     await promisify(fs.mkdir)(folder);
 
     await promisify(fs.writeFile)(folder + id + '.json', JSON.stringify({
-        url: await session.page.url(),
-        content: await session.page.content()
+        url: await page.url(),
+        content: await page.content(),
+        message: err.toString(),
+        error: err
     }, null, 4));
 
-    await session.page.screenshot({ path: folder + id + '.png' });
+    await page.screenshot({ path: folder + id + '.png' });
 }
 
 module.exports = start;

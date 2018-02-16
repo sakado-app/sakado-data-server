@@ -8,12 +8,8 @@ const COURS_HEIGHT = 75;
     By Théophile 'FliiFe' Cailliau <theophile.cailliau@gmail.com>
  */
 
-async function edt(session)
+async function edt(page)
 {
-    await util.checkForExpire(session);
-
-    const page = session.page;
-
     await page.setViewport({
         width: 1920,
         height: 1080
@@ -58,7 +54,13 @@ async function readWeek(page)
 
             if (lines[0].classList.contains('FondBlanc'))
             {
-                computed.info = process(lines[0].innerText);
+                let info = process(lines[0].innerText);
+
+                if (info === 'Prof. absent')
+                {
+                    cours.away = true;
+                }
+
                 lines.splice(0, 1);
             }
 
@@ -97,7 +99,12 @@ async function readWeek(page)
 
             if (lines.length > 2)
             {
-                computed.salle = process(lines[2].innerText);
+                let salle = process(lines[2].innerText);
+
+                if (!salle.startsWith('<'))
+                {
+                    computed.salle = salle;
+                }
             }
 
             let parentStyle = cours.parentElement.parentElement.parentElement.style;
@@ -118,16 +125,30 @@ async function readWeek(page)
         parseInt(document.getElementById("GInterface.Instances[1].Instances[1].Instances[0]_Date0").innerText.substring(5,7)));
 
     cours.forEach(c => {
-        c.length = Math.round(c.dim.height / COURS_HEIGHT);
-        c.hour = Math.round(c.dim.top / COURS_HEIGHT);
-        c.weekday = Math.round(c.dim.left / COURS_LENGTH);
-        c.day = dayShift + c.weekday;
-
+        c.time = toDate(dayShift + Math.round(c.dim.left / COURS_LENGTH), Math.round(c.dim.top / COURS_HEIGHT), Math.round(c.dim.height / COURS_HEIGHT));
         delete c.dim;
     });
 
+    let from = undefined;
+    let to = undefined;
+
+    if (cours.length > 0)
+    {
+        let current = new Date(cours[0].time.from);
+        current.setHours(0);
+        current.setMinutes(0);
+        current.setSeconds(0);
+
+        from = current.getTime();
+
+        current.setDate(current.getDate() + 5);
+
+        to = current.getTime();
+    }
+
     return {
-        from: dayShift,
+        from,
+        to,
         content: cours
     };
 }
@@ -168,7 +189,7 @@ async function skipEmptyWeeks(page)
 {
     while (await isWeekEmpty(page))
     {
-        if (await nextWeek(page)) break;
+        if (!(await nextWeek(page))) break;
     }
 }
 
@@ -180,6 +201,30 @@ async function currentWeek(page)
 async function isWeekEmpty(page)
 {
     return await page.evaluate(() => Promise.resolve(document.querySelectorAll('table.Cours').length === 0));
+}
+
+function toDate(day, hour, length)
+{
+    let current = new Date();
+
+    if (day + 7 < current.getDate())
+    {
+        current.setMonth(current.getMonth() + 1);
+    }
+
+    current.setDate(day);
+    current.setHours(hour + 8);
+    current.setMinutes(0);
+    current.setSeconds(0);
+
+    let from = current.getTime();
+
+    current.setHours(current.getHours() + length);
+
+    return {
+        from,
+        to: current.getTime()
+    };
 }
 
 module.exports = edt;

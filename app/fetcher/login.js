@@ -19,17 +19,15 @@
 const logger = require('../logger');
 const RequestError = require('../error');
 
-async function login(session, { link, username, password })
+async function login(page, username, password, link)
 {
-    logger.info(`Starting login for session #${session.id}, account '${username}'`);
+    logger.info(`Starting login for account '${username}'`);
 
-    const page = session.page;
     await page.goto(`${link}eleve.html?login=true`, { waitUntil: 'networkidle2' });
 
     const url = page.url();
-    logger.info(`Login start URL for session #${session.id} : '${url}'`);
 
-    await session.page.waitFor('input', {
+    await page.waitFor('input', {
         timeout: 60000
     });
 
@@ -50,7 +48,7 @@ async function login(session, { link, username, password })
 
     await page.click('.login-button');
 
-    logger.info(`Logging in session #${session.id} : '${url}'...`);
+    logger.info(`Logging in user ${username} : '${url}'...`);
 
     await Promise.race([page.waitFor('.Message_Cadre0'), page.waitFor('#GInterface_T')]);
     const result = await page.evaluate(function()
@@ -67,16 +65,12 @@ async function login(session, { link, username, password })
 
     if (result !== 'success')
     {
-        logger.info(`Login failed for session #${session.id} : ${result}`);
+        logger.info(`Login failed for user ${username} : ${result}`);
 
         throw new RequestError(result);
     }
 
-    logger.info(`Successfully logged in session #${session.id} : '${username}'`);
-
-    session.username = username;
-    session.password = password;
-    session.link = link;
+    logger.info(`Successfully logged in user ${username} : '${username}'`);
 
     let [classe, name, avatar] = await page.evaluate(function() {
         let content = document.getElementById("GInterface.Instances[0]_aideApresConnexion").innerText;

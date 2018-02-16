@@ -1,6 +1,6 @@
 const util = require('../util');
 
-async function notes({ page })
+async function notes(page)
 {
     await page.mouse.click(10, 30, {
         delay: 500
@@ -15,10 +15,19 @@ async function notes({ page })
             let [ _, subject, __, note ] = n.firstChild.childNodes;
             let date = n.childNodes[1];
 
+            let dateSplit = date.innerText.substring(3).trim().split('/');
+            let current = new Date();
+
+            current.setDate(parseInt(dateSplit[0]));
+            current.setMonth(parseInt(dateSplit[1]));
+            current.setHours(0);
+            current.setMonth(0);
+            current.setSeconds(0);
+
             result.push({
                 subject: subject.innerText.trim(),
                 note: note.innerText.trim().replace(' ', ''),
-                date: date.innerText.substring(3).trim()
+                time: current.getTime()
             });
         });
 
@@ -38,7 +47,10 @@ async function notes({ page })
             result.push(m.substring(m.indexOf(':') + 2, m.length).trim());
         }
 
-        return Promise.resolve(result);
+        return Promise.resolve({
+            eleve: result[0],
+            classe: result[1]
+        });
     });
 
     return {
