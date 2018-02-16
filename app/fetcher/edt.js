@@ -58,7 +58,7 @@ async function readWeek(page)
 
                 if (info === 'Prof. absent')
                 {
-                    cours.away = true;
+                    computed.away = true;
                 }
 
                 lines.splice(0, 1);
