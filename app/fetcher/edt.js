@@ -125,7 +125,11 @@ async function readWeek(page)
         parseInt(document.getElementById("GInterface.Instances[1].Instances[1].Instances[0]_Date0").innerText.substring(5,7)));
 
     cours.forEach(c => {
-        let { from, to } = toDate(dayShift + Math.round(c.dim.left / COURS_LENGTH), Math.round(c.dim.top / COURS_HEIGHT), Math.round(c.dim.height / COURS_HEIGHT));
+        console.log('---- ' + c.name);
+        console.log(c.dim.height + ' / ' + COURS_HEIGHT);
+        console.log(Math.round((c.dim.height / COURS_HEIGHT) * 2) / 2);
+
+        let { from, to } = toDate(dayShift + Math.round(c.dim.left / COURS_LENGTH), Math.round(c.dim.top / COURS_HEIGHT * 2) / 2, Math.round(c.dim.height / COURS_HEIGHT * 2) / 2);
         c.from = from;
         c.to = to;
 
@@ -216,15 +220,24 @@ function toDate(day, hour, length)
         current.setMonth(current.getMonth() + 1);
     }
 
+    let half = hour % 1 > 0;
+
+    if (half) {
+        console.log('OMGOGMOMGOM');
+    }
+
     current.setDate(day);
-    current.setHours(hour + 8);
-    current.setMinutes(0);
+    current.setHours((half ? hour - 0.5 : hour) + 8);
+    current.setMinutes(half ? 30 : 0);
     current.setSeconds(0);
     current.setMilliseconds(0);
 
     let from = current.getTime();
 
-    current.setHours(current.getHours() + length);
+    half = length % 1 > 0;
+
+    current.setHours(current.getHours() + (half ? length - 0.5 : length));
+    if (half) current.setMinutes(current.getMinutes() + 30);
 
     return {
         from,
