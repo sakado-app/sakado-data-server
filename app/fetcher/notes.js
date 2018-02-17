@@ -15,11 +15,16 @@ async function notes(page)
             let [ _, subject, __, note ] = n.firstChild.childNodes;
             let date = n.childNodes[1];
 
-            let dateSplit = date.innerText.substring(3).trim().split('/');
             let current = new Date();
 
-            current.setDate(parseInt(dateSplit[0]));
-            current.setMonth(parseInt(dateSplit[1]));
+            if (date.innerText.toLowerCase() !== "aujourd'hui")
+            {
+                let dateSplit = date.innerText.substring(3).trim().split('/');
+
+                current.setDate(parseInt(dateSplit[0]));
+                current.setMonth(parseInt(dateSplit[1]));
+            }
+
             current.setHours(0);
             current.setMonth(0);
             current.setSeconds(0);
