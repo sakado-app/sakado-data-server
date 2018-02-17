@@ -1,14 +1,14 @@
 const util = require('../util');
 
-const COURS_LENGTH = 308;
-const COURS_HEIGHT = 75;
+const LESSON_LENGTH = 308;
+const LESSON_HEIGHT = 75;
 
 /*
     Parts of this code are taken from https://github.com/ColbertApp/app/blob/master/app/src/main/assets/app.js
     By Théophile 'FliiFe' Cailliau <theophile.cailliau@gmail.com>
  */
 
-async function edt(page)
+async function timetable(page)
 {
     await page.setViewport({
         width: 1920,
@@ -21,36 +21,36 @@ async function edt(page)
     await skipEmptyWeeks(page);
 
     let first = await currentWeek(page);
-    let edt = [];
+    let timetable = [];
 
-    edt[0] = await readWeek(page);
+    timetable[0] = await readWeek(page);
 
     if (await nextWeek(page))
     {
         await skipEmptyWeeks(page);
-        edt[1] = await readWeek(page);
+        timetable[1] = await readWeek(page);
     }
 
     await nextWeek(page, first);
 
-    return edt;
+    return timetable;
 }
 
 async function readWeek(page)
 {
-    const cours = await page.evaluate(function()
+    const lessons = await page.evaluate(function()
     {
         const process = str => str.trim().replace('\n', '');
 
-        let coursArray = [];
+        let lessons = [];
 
         const result = document.querySelectorAll('table.Cours');
 
         for (let i = 0; i < result.length; i++)
         {
-            const cours = result[i];
+            const lesson = result[i];
             let computed = {};
-            const lines = Array.from(cours.querySelectorAll('div.AlignementMilieu'));
+            const lines = Array.from(lesson.querySelectorAll('div.AlignementMilieu'));
 
             if (lines[0].classList.contains('FondBlanc'))
             {
@@ -78,11 +78,11 @@ async function readWeek(page)
 
             if (lines.length > 1)
             {
-                computed.prof = process(lines[1].innerText);
+                computed.teacher = process(lines[1].innerText);
 
-                if (computed.prof === computed.name)
+                if (computed.teacher === computed.name)
                 {
-                    computed.prof = process(lines[2].innerText);
+                    computed.teacher = process(lines[2].innerText);
                     lines.splice(0, 1);
                 }
             }
@@ -99,15 +99,15 @@ async function readWeek(page)
 
             if (lines.length > 2)
             {
-                let salle = process(lines[2].innerText);
+                let room = process(lines[2].innerText);
 
-                if (!salle.startsWith('<'))
+                if (!room.startsWith('<'))
                 {
-                    computed.salle = salle;
+                    computed.room = room;
                 }
             }
 
-            let parentStyle = cours.parentElement.parentElement.parentElement.style;
+            let parentStyle = lesson.parentElement.parentElement.parentElement.style;
             computed.dim = {};
 
             ['top', 'left', 'width', 'height'].forEach(name => {
@@ -115,21 +115,17 @@ async function readWeek(page)
                 computed.dim[name] = parseInt(style.substring(0, style.length - 2))
             });
 
-            coursArray.push(computed);
+            lessons.push(computed);
         }
 
-        return Promise.resolve(coursArray);
+        return Promise.resolve(lessons);
     });
 
     const dayShift = await page.evaluate(() =>
         parseInt(document.getElementById("GInterface.Instances[1].Instances[1].Instances[0]_Date0").innerText.substring(5,7)));
 
-    cours.forEach(c => {
-        console.log('---- ' + c.name);
-        console.log(c.dim.height + ' / ' + COURS_HEIGHT);
-        console.log(Math.round((c.dim.height / COURS_HEIGHT) * 2) / 2);
-
-        let { from, to } = toDate(dayShift + Math.round(c.dim.left / COURS_LENGTH), Math.round(c.dim.top / COURS_HEIGHT * 2) / 2, Math.round(c.dim.height / COURS_HEIGHT * 2) / 2);
+    lessons.forEach(c => {
+        let { from, to } = toDate(dayShift + Math.round(c.dim.left / LESSON_LENGTH), Math.round(c.dim.top / LESSON_HEIGHT * 2) / 2, Math.round(c.dim.height / LESSON_HEIGHT * 2) / 2);
         c.from = from;
         c.to = to;
 
@@ -139,9 +135,9 @@ async function readWeek(page)
     let from = undefined;
     let to = undefined;
 
-    if (cours.length > 0)
+    if (lessons.length > 0)
     {
-        let current = new Date(cours[0].from);
+        let current = new Date(lessons[0].from);
         current.setHours(0);
         current.setMinutes(0);
         current.setSeconds(0);
@@ -157,7 +153,7 @@ async function readWeek(page)
     return {
         from,
         to,
-        content: cours
+        content: lessons
     };
 }
 
@@ -222,10 +218,6 @@ function toDate(day, hour, length)
 
     let half = hour % 1 > 0;
 
-    if (half) {
-        console.log('OMGOGMOMGOM');
-    }
-
     current.setDate(day);
     current.setHours((half ? hour - 0.5 : hour) + 8);
     current.setMinutes(half ? 30 : 0);
@@ -245,4 +237,4 @@ function toDate(day, hour, length)
     };
 }
 
-module.exports = edt;
+module.exports = timetable;

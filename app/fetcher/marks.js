@@ -7,12 +7,12 @@ async function notes(page)
     });
     await page.waitFor('#GInterface\\.Instances\\[1\\]_colonne_1');
 
-    let lastNotes = await page.evaluate(() => {
-        let notes = document.getElementById('GInterface.Instances[1]_colonne_1').childNodes[1].childNodes[1].childNodes[0].firstChild.childNodes;
+    let lastMarks = await page.evaluate(() => {
+        let marks = document.getElementById('GInterface.Instances[1]_colonne_1').childNodes[1].childNodes[1].childNodes[0].firstChild.childNodes;
         let result = [];
 
-        notes.forEach(n => {
-            let [ _, subject, __, note ] = n.firstChild.childNodes;
+        marks.forEach(n => {
+            let [ _, subject, __, mark ] = n.firstChild.childNodes;
             let date = n.childNodes[1];
 
             let current = new Date();
@@ -32,7 +32,7 @@ async function notes(page)
 
             result.push({
                 subject: subject.innerText.trim(),
-                note: note.innerText.trim().replace(' ', ''),
+                mark: mark.innerText.trim().replace(' ', ''),
                 time: current.getTime()
             });
         });
@@ -44,24 +44,24 @@ async function notes(page)
     await util.waitForLoading(page);
     await page.waitFor('#GInterface\\.Instances\\[1\\]\\.Instances\\[1\\]_piedDeListe');
 
-    let moyennes = await page.evaluate(() => {
-        let moyennes = document.getElementById('GInterface.Instances[1].Instances[1]_piedDeListe').innerText.split('\n');
+    let averages = await page.evaluate(() => {
+        let averages = document.getElementById('GInterface.Instances[1].Instances[1]_piedDeListe').innerText.split('\n');
         let result = [];
 
         for (let i = 0; i < 2; i++) {
-            let m = moyennes[i];
+            let m = averages[i];
             result.push(m.substring(m.indexOf(':') + 2, m.length).trim());
         }
 
         return Promise.resolve({
-            eleve: parseFloat(result[0].replace(',', '.')),
-            classe: parseFloat(result[1].replace(',', '.'))
+            student: parseFloat(result[0].replace(',', '.')),
+            studentClass: parseFloat(result[1].replace(',', '.'))
         });
     });
 
     return {
-        lastNotes,
-        moyennes
+        lastMarks,
+        averages
     };
 }
 

@@ -8,8 +8,8 @@ const browser = require('./browser');
 const RequestError = require('./error');
 
 const login = require('./fetcher/login');
-const edtFetch = require('./fetcher/edt');
-const notes = require('./fetcher/notes');
+const timetableFetch = require('./fetcher/timetable');
+const marks = require('./fetcher/marks');
 const homeworksFetch = require('./fetcher/homeworks');
 
 function start(port)
@@ -71,22 +71,22 @@ async function fetch(page, { username, password, link })
 {
     let time = Date.now();
 
-    let { classe, name, avatar } = await login(page, username, password, link);
-    let edt = await edtFetch(page);
-    let { lastNotes, moyennes } = await notes(page);
+    let { studentClass, name, avatar } = await login(page, username, password, link);
+    let timetable = await timetableFetch(page);
+    let { lastMarks, averages } = await marks(page);
     let homeworks = await homeworksFetch(page);
 
     logger.info(`Fetched user '${username}' in ${(Date.now() - time) / 1000}s`);
     await page.close();
 
     return {
-        classe,
+        studentClass,
         name,
         avatar,
 
-        edt,
-        lastNotes,
-        moyennes,
+        timetable,
+        lastMarks,
+        averages,
         homeworks
     };
 }
