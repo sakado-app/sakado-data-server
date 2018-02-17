@@ -23,6 +23,7 @@ async function notes(page)
             current.setHours(0);
             current.setMonth(0);
             current.setSeconds(0);
+            current.setMilliseconds(0);
 
             result.push({
                 subject: subject.innerText.trim(),
@@ -48,8 +49,8 @@ async function notes(page)
         }
 
         return Promise.resolve({
-            eleve: result[0],
-            classe: result[1]
+            eleve: parseFloat(result[0].replace(',', '.')),
+            classe: parseFloat(result[1].replace(',', '.'))
         });
     });
 

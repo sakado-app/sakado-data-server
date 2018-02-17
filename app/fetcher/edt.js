@@ -125,7 +125,10 @@ async function readWeek(page)
         parseInt(document.getElementById("GInterface.Instances[1].Instances[1].Instances[0]_Date0").innerText.substring(5,7)));
 
     cours.forEach(c => {
-        c.time = toDate(dayShift + Math.round(c.dim.left / COURS_LENGTH), Math.round(c.dim.top / COURS_HEIGHT), Math.round(c.dim.height / COURS_HEIGHT));
+        let { from, to } = toDate(dayShift + Math.round(c.dim.left / COURS_LENGTH), Math.round(c.dim.top / COURS_HEIGHT), Math.round(c.dim.height / COURS_HEIGHT));
+        c.from = from;
+        c.to = to;
+
         delete c.dim;
     });
 
@@ -134,10 +137,11 @@ async function readWeek(page)
 
     if (cours.length > 0)
     {
-        let current = new Date(cours[0].time.from);
+        let current = new Date(cours[0].from);
         current.setHours(0);
         current.setMinutes(0);
         current.setSeconds(0);
+        current.setMilliseconds(0);
 
         from = current.getTime();
 
@@ -216,6 +220,7 @@ function toDate(day, hour, length)
     current.setHours(hour + 8);
     current.setMinutes(0);
     current.setSeconds(0);
+    current.setMilliseconds(0);
 
     let from = current.getTime();
 
