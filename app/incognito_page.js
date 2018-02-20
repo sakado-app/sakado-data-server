@@ -10,7 +10,7 @@ async function newPageWithNewContext(browser)
 
     const target = await browser._targets.get(targetId);
     const client = await browser._connection.createSession(targetId);
-    const page = await Page.create(client, target, browser._ignoreHTTPSErrors, browser._appMode, browser._screenshotTaskQueue);
+    const page = await Page.create(client, /*target,*/ browser._ignoreHTTPSErrors, browser._appMode, browser._screenshotTaskQueue);
 
     page.browserContextId = browserContextId;
 

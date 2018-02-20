@@ -21,15 +21,22 @@ function sleep(duration)
     return new Promise(r => setTimeout(r, duration));
 }
 
-async function goTo(page, name)
+function goTo(page, name)
 {
-    await page.evaluate(name => {
-        let link = Array.prototype.slice.call(document.getElementsByTagName('li')).filter(function(elem) {
+    return page.evaluate(name => {
+        let links = Array.prototype.slice.call(document.getElementsByTagName('li')).filter(function(elem) {
             return elem.getAttribute('aria-label') === name;
-        })[0];
+        });
 
-        link.focus();
-        link.click();
+        if (links.length === 0)
+        {
+            return Promise.resolve(false);
+        }
+
+        links[0].focus();
+        links[0].click();
+
+        return Promise.resolve(true);
     }, name);
 }
 

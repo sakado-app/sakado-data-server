@@ -30,6 +30,7 @@ async function start()
 
 async function open()
 {
+    browser.newPage()
     // const page = await browser.newPage();
     const page = await newIncognitoPage(browser);
 

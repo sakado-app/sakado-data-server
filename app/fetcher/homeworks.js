@@ -16,9 +16,15 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+const util = require('../util');
+
 async function homeworks(page)
 {
-    await page.mouse.click(200, 40);
+    if (!(await util.goTo(page, 'Devoirs')))
+    {
+        return null;
+    }
+
     // await page.waitFor(".ElementPourNavigation.AlignementGauche.AvecMain.FondBlanc");
 
     await page.waitFor("#GInterface\\.Instances\\[1\\]\\.Instances\\[0\\]_GrilleCalendrier");
