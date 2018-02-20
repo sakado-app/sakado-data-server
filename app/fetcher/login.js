@@ -18,6 +18,7 @@
 
 const logger = require('../logger');
 const RequestError = require('../error');
+const fetchUser = require('../user_fetch');
 
 async function login(page, username, password, link)
 {
@@ -72,18 +73,7 @@ async function login(page, username, password, link)
 
     logger.info(`Successfully logged in user ${username} : '${username}'`);
 
-    let [studentClass, name, avatar] = await page.evaluate(function() {
-        let content = document.getElementById("GInterface.Instances[0]_aideApresConnexion").innerText;
-        let full = content.split('-')[1].trim();
-
-        let studentClass = full.substring(full.indexOf('(') + 1, full.indexOf(')'));
-        let name = full.substring(0, full.indexOf('(') - 1);
-        let avatar = document.querySelector("img").src;
-
-        return [studentClass, name, avatar];
-    });
-
-    return { studentClass, name, avatar };
+    return fetchUser(page);
 }
 
 module.exports = login;

@@ -18,6 +18,7 @@
 
 const logger = require('./logger');
 const puppeteer = require('puppeteer');
+const newIncognitoPage = require('./incognito_page');
 
 let browser;
 
@@ -29,7 +30,8 @@ async function start()
 
 async function open()
 {
-    const page = await browser.newPage();
+    // const page = await browser.newPage();
+    const page = await newIncognitoPage(browser);
 
     /*await page.setViewport({
         width: 1920,

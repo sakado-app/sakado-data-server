@@ -1,3 +1,20 @@
+/*
+ *  Sakado, an app for school
+ *  Copyright (C) 2017 Adrien 'Litarvan' Navratil
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 const fs = require('fs');
 const jayson = require('jayson/promise');
 const promisify = require('util').promisify;
@@ -8,6 +25,7 @@ const browser = require('./browser');
 const RequestError = require('./error');
 
 const login = require('./fetcher/login');
+const atenLogin = require('./fetcher/aten_login');
 const timetableFetch = require('./fetcher/timetable');
 const marks = require('./fetcher/marks');
 const homeworksFetch = require('./fetcher/homeworks');
@@ -67,11 +85,11 @@ async function handle(server, args)
     }
 }
 
-async function fetch(page, { username, password, link })
+async function fetch(page, { username, password, params: { pronote, variant } })
 {
     let time = Date.now();
 
-    let { studentClass, name, avatar } = await login(page, username, password, link);
+    let { studentClass, name, avatar } = await (variant === 'aten' ? atenLogin : login)(page, username, password, pronote);
     let timetable = await timetableFetch(page);
     let { lastMarks, averages } = await marks(page);
     let homeworks = await homeworksFetch(page);
