@@ -20,7 +20,7 @@ const util = require('../util');
 
 async function homeworks(page)
 {
-    if (!(await util.goTo(page, 'Devoirs')))
+    if (!(await util.goTo(page, 'Travail à faire')))
     {
         return null;
     }

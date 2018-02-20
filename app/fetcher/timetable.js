@@ -121,16 +121,17 @@ async function readWeek(page)
         return Promise.resolve(lessons);
     });
 
-    const dayShift = await page.evaluate(() =>
-        parseInt(document.getElementById("GInterface.Instances[1].Instances[1].Instances[0]_Date0").innerText.substring(5,7)));
+    /*const dayShift = await page.evaluate(() =>
+        parseInt(document.getElementById("GInterface.Instances[1].Instances[1].Instances[0]_Date0").innerText.substring(5,7)));*/
 
-    lessons.forEach(c => {
-        let { from, to } = toDate(dayShift + Math.round(c.dim.left / LESSON_LENGTH), Math.round(c.dim.top / LESSON_HEIGHT * 2) / 2, Math.round(c.dim.height / LESSON_HEIGHT * 2) / 2);
+    for (const c of lessons)
+    {
+        let { from, to } = toDate(await currentWeek(page), /*dayShift + */Math.round(c.dim.left / LESSON_LENGTH), Math.round(c.dim.top / LESSON_HEIGHT * 2) / 2, Math.round(c.dim.height / LESSON_HEIGHT * 2) / 2);
         c.from = from;
         c.to = to;
 
         delete c.dim;
-    });
+    }
 
     let from = undefined;
     let to = undefined;
@@ -207,18 +208,19 @@ async function isWeekEmpty(page)
     return await page.evaluate(() => Promise.resolve(document.querySelectorAll('table.Cours').length === 0));
 }
 
-function toDate(day, hour, length)
+function toDate(week, day, hour, length)
 {
     let current = new Date();
 
-    if (day + 7 < current.getDate())
+    /*if (day + 7 < current.getDate())
     {
         current.setMonth(current.getMonth() + 1);
-    }
+    }*/
 
     let half = hour % 1 > 0;
 
-    current.setDate(day);
+    current.setMonth(0);
+    current.setDate((week - 18) * 7 + 1 + day);
     current.setHours((half ? hour - 0.5 : hour) + 8);
     current.setMinutes(half ? 30 : 0);
     current.setSeconds(0);

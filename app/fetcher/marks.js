@@ -2,8 +2,9 @@ const util = require('../util');
 
 async function notes(page)
 {
-    await util.goTo(page, 'Notes');
-
+    await page.mouse.click(10, 30, {
+        delay: 500
+    });
     await page.waitFor('#GInterface\\.Instances\\[1\\]_colonne_1');
 
     let lastMarks = await page.evaluate(() => {
