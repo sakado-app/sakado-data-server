@@ -81,6 +81,8 @@ async function handle(server, args)
             }
         }
 
+        await page.close();
+
         throw new server.error(-32603, err.toString());
     }
 }
@@ -95,6 +97,7 @@ async function fetch(page, { username, password, params: { pronote, variant } })
     let homeworks = await homeworksFetch(page);
 
     logger.info(`Fetched user '${username}' in ${(Date.now() - time) / 1000}s`);
+
     await page.close();
 
     return {

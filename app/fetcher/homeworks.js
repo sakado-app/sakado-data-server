@@ -71,7 +71,7 @@ async function homeworks(page)
                     let splitDate = day.innerText.trim().toLowerCase().split(' ');
 
                     current.setDate(parseInt(splitDate[1]));
-                    current.setMonth(MONTHS.indexOf(splitDate[2]) + 1);
+                    current.setMonth(MONTHS.indexOf(splitDate[2]));
                     current.setHours(0);
                     current.setSeconds(0);
                     current.setMilliseconds(0);
