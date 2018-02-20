@@ -73,7 +73,6 @@ async function homeworks(page)
                     current.setDate(parseInt(splitDate[1]));
                     current.setMonth(MONTHS.indexOf(splitDate[2]) + 1);
                     current.setHours(0);
-                    current.setMonth(0);
                     current.setSeconds(0);
                     current.setMilliseconds(0);
 
