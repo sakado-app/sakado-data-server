@@ -26,6 +26,8 @@ const RequestError = require('./error');
 
 const login = require('./fetcher/login');
 const atenLogin = require('./fetcher/aten_login');
+const idfLogin = require('./fetcher/idf_login');
+
 const timetableFetch = require('./fetcher/timetable');
 const marks = require('./fetcher/marks');
 const homeworksFetch = require('./fetcher/homeworks');
@@ -81,7 +83,7 @@ async function handle(server, args)
             }
         }
 
-        await page.close();
+        // await page.close();
 
         throw new server.error(-32603, err.toString());
     }
@@ -91,7 +93,22 @@ async function fetch(page, { username, password, params: { pronote, variant } })
 {
     let time = Date.now();
 
-    let { studentClass, name, avatar } = await (variant === 'aten' ? atenLogin : login)(page, username, password, pronote);
+    let loginFunction;
+
+    switch (variant)
+    {
+        case 'aten':
+            loginFunction = atenLogin;
+            break;
+        case 'idf':
+            loginFunction = idfLogin;
+            break;
+        default:
+            loginFunction = login;
+            break;
+    }
+
+    let { studentClass, name, avatar } = await loginFunction(page, username, password, pronote);
     let timetable = await timetableFetch(page);
     let { lastMarks, averages } = await marks(page);
     let homeworks = await homeworksFetch(page);

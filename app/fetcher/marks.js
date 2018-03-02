@@ -46,6 +46,12 @@ async function notes(page)
 
     let averages = await page.evaluate(() => {
         let averages = document.getElementById('GInterface.Instances[1].Instances[1]_piedDeListe').innerText.split('\n');
+
+        if (averages.length != 2)
+        {
+            return Promise.resolve(null);
+        }
+
         let result = [];
 
         for (let i = 0; i < 2; i++) {
