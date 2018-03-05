@@ -42,10 +42,10 @@ function start(port)
             }
             catch(err)
             {
-                logger.error(`Internal error`);
+                logger.error(`Sakado server internal error`);
                 console.error(err);
 
-                throw new server.error(-32603, err.toString());
+                throw new server.error(-32603, `Sakado internal error : ${err.toString()}`);
             }
         }
     });
