@@ -29,16 +29,19 @@ async function login(page, username, password, link)
     let url = page.url();
     logger.info(`Login start URL for '${username}' : '${url}'`);
 
-    const loginUrl = 'https://' + await page.evaluate(() =>
+    if (!url.contains('ct_logon_vk.jsp'))
     {
-        // Code extrait de la page du CAS quand on clique sur "Etablissement éducation nationale"
-        creerCookie('service', window.location.href, 2);
-        creerCookie('fim', '2', 2);
+        const loginUrl = 'https://' + await page.evaluate(() =>
+        {
+            // Code extrait de la page du CAS quand on clique sur "Etablissement éducation nationale"
+            creerCookie('service', window.location.href, 2);
+            creerCookie('fim', '2', 2);
 
-        return Promise.resolve(getIdpUrl('2', true));
-    });
+            return Promise.resolve(getIdpUrl('2', true));
+        });
 
-    await page.goto(loginUrl, { waitUntil: 'networkidle0' });
+        await page.goto(loginUrl, { waitUntil: 'networkidle0' });
+    }
 
     await page.waitFor('#user');
 
